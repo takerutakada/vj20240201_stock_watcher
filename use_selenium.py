@@ -101,27 +101,34 @@ def write_sheet(data):
                     authorized_user_filename=os.path.join(dir_path, "authorized_user.json"),
                     )
     # スプレッドシートに書き込み
-    ws = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
-    ws.clear()
+    wb = gc.create("test03") # test03のファイルを作成
+    print(wb.id)
+    wb = gc.open_by_key(wb.id) # test03のファイルを開く(キーから)
+    ws = wb.get_worksheet(0) # 最初のシートを開く(idは0始まりの整数)
+    print(ws.title)
+
+    # ws = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
+    # ws.clear()
+
     ws.append_rows(data)
 
 def main_func():
     data = get_data()
     write_sheet(data)
 
-# main_func()
+main_func()
 
-while trials_count <= max_trial_count:
-    try:
-        main_func()
-        success += 1
-    except:
-        failed += 1
-        continue
-    trials_count += 1
-    print(trials_count)
+# while trials_count <= max_trial_count:
+#     try:
+#         main_func()
+#         success += 1
+#     except:
+#         failed += 1
+#         continue
+#     trials_count += 1
+#     print(trials_count)
 
-print(f'success: {success} / failed: {failed}')
+# print(f'success: {success} / failed: {failed}')
 
 # 時間計測終了
 time_end = time.perf_counter()
