@@ -73,9 +73,9 @@ def get_data():
         quantity_input.send_keys(Keys.RETURN)
 
         # 購入可能数量を取得して出力
+        time.sleep(2)
         driver.get("https://www.amazon.co.jp/gp/cart/view.html")
         quantity_input = driver.find_element(By.NAME, "quantityBox")
-        time.sleep(2)
         available_quantity = quantity_input.get_attribute("value")
         print(f"ASIN: {asin} - 購入可能数量: {available_quantity}")
         data.append([asin, '', available_quantity])
@@ -93,22 +93,16 @@ def get_data():
 
 def write_sheet(data):
 
-    WORKBOOK_KEY = '1YUidupPf4GmIMECZh1SAv2qIcNZvWFvbSo-olA1UzPI'
+    WORKBOOK_KEY = '1bW-mhl-2NasK8uqPWI85Ur2Vm6qpjUNoifxf5GkdQMI'
 
     dir_path = os.path.dirname(__file__)
     gc = gspread.oauth(
                     credentials_filename=os.path.join(dir_path, "client_secret.json"),
                     authorized_user_filename=os.path.join(dir_path, "authorized_user.json"),
                     )
-    # スプレッドシートに書き込み
-    wb = gc.create("test03") # test03のファイルを作成
-    print(wb.id)
-    wb = gc.open_by_key(wb.id) # test03のファイルを開く(キーから)
-    ws = wb.get_worksheet(0) # 最初のシートを開く(idは0始まりの整数)
-    print(ws.title)
 
-    # ws = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
-    # ws.clear()
+    ws = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
+    ws.clear()
 
     ws.append_rows(data)
 
