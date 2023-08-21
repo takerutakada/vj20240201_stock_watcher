@@ -28,7 +28,6 @@ def productCompetitive_asin(ASIN_LIST):
 
 # 引数（ASINのリスト）
 ASIN_LIST = ['B07SK4W1VJ','B097B2HQ5R']
-ASIN_LIST = 'B07SK4W1VJ'
 # 関数実行
 productCompetitive_asin(ASIN_LIST)
 

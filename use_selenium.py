@@ -1,4 +1,5 @@
 import time
+import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
@@ -26,7 +27,10 @@ def get_data():
     # options.add_argument('--headless')
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
-    data = [['ASIN', '商品名', '2023/08/20']]
+    driver.set_window_position(0,0) # ブラウザの位置を左上に固定
+    driver.set_window_size(860,1200) # ブラウザのウィンドウサイズを固定
+
+    data = [['ASIN', '商品名', datetime.date.today().strftime("%Y/%m/%d")]]
 
     for asin in asins:
         # Amazon商品検索用URLを構築
@@ -87,7 +91,6 @@ def get_data():
         time.sleep(2)
 
     # WebDriverを閉じる
-    print(data)
     driver.quit()
     return data
 
@@ -129,4 +132,4 @@ time_end = time.perf_counter()
 # 経過時間（秒）
 tim = time_end- time_sta
 
-print(f'処理が完了しました。処理時間：{tim}')
+print(f'処理が完了しました。処理時間：{round(tim, 2)}秒')
