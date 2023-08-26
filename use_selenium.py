@@ -1,100 +1,17 @@
 import time
 import datetime
+import gspread
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-import gspread
-import os
+# # ASINsリストを定義
+# asins = ["B0B9H67NYT", "B0B9GMPXGN", "B0B9GP8WF8"]
 
-# 時間計測開始
-time_sta = time.perf_counter()
-
-# ASINsリストを定義
-asins = ["B0B9H67NYT", "B0B9GMPXGN", "B0B9GP8WF8"]
-
-success, failed = 0, 0
-
-trials_count = 0
-max_trial_count = 10
-
-def get_data():
-
-    # WebDriverの初期化
-    options = webdriver.ChromeOptions()
-    # options.add_argument('--headless')
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-
-    driver.set_window_position(0,0) # ブラウザの位置を左上に固定
-    driver.set_window_size(860,1200) # ブラウザのウィンドウサイズを固定
-
-    data = [['ASIN', '商品名', datetime.date.today().strftime("%Y/%m/%d")]]
-
-    for asin in asins:
-        # Amazon商品検索用URLを構築
-        url = f"https://www.amazon.co.jp/s?k={asin}"
-
-        # URLにアクセス
-        driver.get(url)
-
-        # 商品詳細ページに遷移
-        product_link = driver.find_element(By.CSS_SELECTOR, ".s-result-item a")
-        product_link.click()
-        driver.switch_to.window(driver.window_handles[-1])
-
-        # カートに追加
-        try:
-            add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
-            add_to_cart_button.click()
-        except:
-            print(f"ASIN: {asin} - カートに追加できませんでした。")
-            continue
-
-        # カートに移動
-        driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-
-        # 数量選択ページに遷移
-        time.sleep(2)
-        quantity_button = driver.find_element(By.CSS_SELECTOR, "#a-autoid-0-announce")
-        quantity_button.click()
-        time.sleep(2)
-
-        # 10+を選択
-        while 'product' in driver.current_url:
-            print(driver.current_url)
-            print('キャンペーン広告をクリックしました。ブラウザバックします')
-            driver.back()
-            time.sleep(2)
-        ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
-        ten_plus_option.click()
-
-        # 数量入力
-        quantity_input = driver.find_element(By.NAME, "quantityBox")
-        quantity_input.send_keys(Keys.CONTROL + "a")
-        quantity_input.send_keys("999")
-        quantity_input.send_keys(Keys.RETURN)
-
-        # 購入可能数量を取得して出力
-        time.sleep(2)
-        driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-        quantity_input = driver.find_element(By.NAME, "quantityBox")
-        available_quantity = quantity_input.get_attribute("value")
-        print(f"ASIN: {asin} - 購入可能数量: {available_quantity}")
-        data.append([asin, '', available_quantity])
-
-        # 削除ボタンをクリックして商品をカートから削除
-        driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-        delete_button = driver.find_element(By.CSS_SELECTOR, "span.a-size-small.sc-action-delete")
-        delete_button.click()
-        time.sleep(2)
-
-    # WebDriverを閉じる
-    driver.quit()
-    return data
-
-def write_sheet(data):
+def operate_sheet(mode, data = ''):
 
     WORKBOOK_KEY = '1bW-mhl-2NasK8uqPWI85Ur2Vm6qpjUNoifxf5GkdQMI'
 
@@ -104,18 +21,145 @@ def write_sheet(data):
                     authorized_user_filename=os.path.join(dir_path, "authorized_user.json"),
                     )
 
-    ws = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
-    ws.clear()
+    # スプレッドシートを開く
+    worksheet = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
 
-    ws.append_rows(data)
+    if mode == 'r':
+        return worksheet.col_values(1)[1:]
+
+    elif mode == 'w':
+
+        # 既存のデータを取得
+        existing_data = worksheet.get_all_records()
+
+        # 渡す辞書配列
+
+        # 現在の日付を取得
+        current_date = datetime.datetime.now().strftime("%Y/%m/%d")
+
+        # 列名を取得
+        header_row = worksheet.row_values(1)
+        num_existing_columns = len(header_row)
+
+        # 新しい列を追加
+        new_column_index = num_existing_columns + 1
+        worksheet.update_cell(1, new_column_index, current_date)
+
+        # 各データに対して処理
+        for asin, quantity in data.items():
+            row_exists = False
+            for row in existing_data:
+                if row["ASIN"] == asin:
+                    row_exists = True
+                    row_index = existing_data.index(row) + 2  # 行のインデックス（1から始まる）を取得
+                    worksheet.update_cell(row_index, new_column_index, quantity)
+                    break
+
+            if not row_exists:
+                new_row = [asin, "", ""] + [""] * (new_column_index - 4) + [quantity]
+                worksheet.append_row(new_row)
+
+        print("スクリプトの実行が完了しました。")
+
+def get_data(asins):
+
+    # WebDriverの初期化
+    options = webdriver.ChromeOptions()
+    # options.add_argument('--headless')
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+
+    driver.set_window_position(0,0) # ブラウザの位置を左上に固定
+    driver.set_window_size(860,1200) # ブラウザのウィンドウサイズを固定
+
+    data = {}
+
+    for asin in asins:
+        retry_count = 0
+        max_retries = 3
+        is_success = False
+        while not is_success:
+            try:
+                # Amazon商品検索用URLを構築
+                url = f"https://www.amazon.co.jp/s?k={asin}"
+
+                # URLにアクセス
+                driver.get(url)
+
+                # 商品詳細ページに遷移
+                product_link = driver.find_element(By.CSS_SELECTOR, ".s-result-item a")
+                product_link.click()
+                driver.switch_to.window(driver.window_handles[-1])
+
+                # カートに追加
+                try:
+                    add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
+                    add_to_cart_button.click()
+                except:
+                    print(f"ASIN: {asin} - カートに追加できませんでした。")
+                    continue
+
+                # カートに移動
+                driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+
+                # 数量選択ページに遷移
+                time.sleep(2)
+                quantity_button = driver.find_element(By.CSS_SELECTOR, "#a-autoid-0-announce")
+                quantity_button.click()
+                time.sleep(2)
+
+                # 10+を選択
+                while 'product' in driver.current_url:
+                    print(driver.current_url)
+                    print('キャンペーン広告をクリックしました。ブラウザバックします')
+                    driver.back()
+                    time.sleep(2)
+                ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
+                ten_plus_option.click()
+
+                # 数量入力
+                quantity_input = driver.find_element(By.NAME, "quantityBox")
+                quantity_input.send_keys(Keys.CONTROL + "a")
+                quantity_input.send_keys("999")
+                quantity_input.send_keys(Keys.RETURN)
+
+                # 購入可能数量を取得して出力
+                time.sleep(2)
+                driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+                quantity_input = driver.find_element(By.NAME, "quantityBox")
+                available_quantity = quantity_input.get_attribute("value")
+                print(f"ASIN: {asin} - 購入可能数量: {available_quantity}")
+
+                # 削除ボタンをクリックして商品をカートから削除
+                driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+                delete_button = driver.find_element(By.CSS_SELECTOR, "span.a-size-small.sc-action-delete")
+                delete_button.click()
+                time.sleep(2)
+
+                data[asin] = available_quantity
+                is_success = True
+
+            except:
+                if retry_count > max_retries:
+                    print(f'{asin} のデータ取得に失敗しました。次の商品に移ります。')
+                retry_count += 1
+                print(retry_count)
+                continue
+
+    # WebDriverを閉じる
+    driver.quit()
+    return data
 
 def main_func():
-    data = get_data()
-    write_sheet(data)
+    asins = operate_sheet('r')
+    data = get_data(asins)
+    # data = {"B0B9H67NYT": 52, "B0B9GMPXGN": 54, "B0B9GP8WF8": 49}
+    operate_sheet('w', data)
 
-main_func()
 
-# while trials_count <= max_trial_count:
+# success, failed = 0, 0
+# trials_count = 0
+# max_trial_count = 10
+# # while trials_count <= max_trial_count:
 #     try:
 #         main_func()
 #         success += 1
@@ -127,9 +171,13 @@ main_func()
 
 # print(f'success: {success} / failed: {failed}')
 
-# 時間計測終了
-time_end = time.perf_counter()
-# 経過時間（秒）
-tim = time_end- time_sta
-
-print(f'処理が完了しました。処理時間：{round(tim, 2)}秒')
+if __name__ == '__main__':
+    # 時間計測開始
+    time_sta = time.perf_counter()
+    # 実行
+    main_func()
+    # 時間計測終了
+    time_end = time.perf_counter()
+    # 経過時間（秒）
+    tim = time_end- time_sta
+    print(f'処理が完了しました。処理時間：{round(tim, 2)}秒')
