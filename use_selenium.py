@@ -59,7 +59,7 @@ def operate_sheet(mode, data = ''):
                 new_row = [asin, "", ""] + [""] * (new_column_index - 4) + [quantity]
                 worksheet.append_row(new_row)
 
-        print("スクリプトの実行が完了しました。")
+        print('スプレッドシートへの入力が完了しました。')
 
 def get_data(asins):
 
@@ -140,21 +140,31 @@ def get_data(asins):
 
             except:
                 if retry_count > max_retries:
-                    print(f'{asin} のデータ取得に失敗しました。次の商品に移ります。')
-                retry_count += 1
-                print(retry_count)
-                continue
+                    print(f'{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。')
+                else:
+                    retry_count += 1
+                    print(f'{asin} のデータ取得に失敗しました。（リトライ回数：{retry_count}回目）')
+                    continue
 
     # WebDriverを閉じる
     driver.quit()
+    print('データの取得が完了しました。')
     return data
 
 def main_func():
+
+    # 時間計測開始
+    time_sta = time.perf_counter()
+    # 実行
     asins = operate_sheet('r')
     data = get_data(asins)
     # data = {"B0B9H67NYT": 52, "B0B9GMPXGN": 54, "B0B9GP8WF8": 49}
     operate_sheet('w', data)
-
+    # 時間計測終了
+    time_end = time.perf_counter()
+    # 経過時間（秒）
+    tim = time_end- time_sta
+    print(f'処理時間：{round(tim, 2)}秒')
 
 # success, failed = 0, 0
 # trials_count = 0
@@ -172,12 +182,6 @@ def main_func():
 # print(f'success: {success} / failed: {failed}')
 
 if __name__ == '__main__':
-    # 時間計測開始
-    time_sta = time.perf_counter()
-    # 実行
+
     main_func()
-    # 時間計測終了
-    time_end = time.perf_counter()
-    # 経過時間（秒）
-    tim = time_end- time_sta
-    print(f'処理が完了しました。処理時間：{round(tim, 2)}秒')
+
