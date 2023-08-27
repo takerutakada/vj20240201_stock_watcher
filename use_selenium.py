@@ -25,9 +25,11 @@ def operate_sheet(mode, data = ''):
     worksheet = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
 
     if mode == 'r':
+        print('operate_sheet_r')
         return worksheet.col_values(1)[1:]
 
     elif mode == 'w':
+        print('operate_sheet_w')
 
         # 既存のデータを取得
         existing_data = worksheet.get_all_records()
@@ -91,12 +93,8 @@ def get_data(asins):
                 driver.switch_to.window(driver.window_handles[-1])
 
                 # カートに追加
-                try:
-                    add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
-                    add_to_cart_button.click()
-                except:
-                    print(f"ASIN: {asin} - カートに追加できませんでした。")
-                    continue
+                add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
+                add_to_cart_button.click()
 
                 # カートに移動
                 driver.get("https://www.amazon.co.jp/gp/cart/view.html")
@@ -143,7 +141,7 @@ def get_data(asins):
                     print(f'{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。')
                 else:
                     retry_count += 1
-                    print(f'{asin} のデータ取得に失敗しました。（リトライ回数：{retry_count}回目）')
+                    print(f'{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）')
                     continue
 
     # WebDriverを閉じる
@@ -165,21 +163,6 @@ def main_func():
     # 経過時間（秒）
     tim = time_end- time_sta
     print(f'処理時間：{round(tim, 2)}秒')
-
-# success, failed = 0, 0
-# trials_count = 0
-# max_trial_count = 10
-# # while trials_count <= max_trial_count:
-#     try:
-#         main_func()
-#         success += 1
-#     except:
-#         failed += 1
-#         continue
-#     trials_count += 1
-#     print(trials_count)
-
-# print(f'success: {success} / failed: {failed}')
 
 if __name__ == '__main__':
 
