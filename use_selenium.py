@@ -29,12 +29,9 @@ def operate_sheet(mode, data = ''):
         return worksheet.col_values(1)[1:]
 
     elif mode == 'w':
-        print('operate_sheet_w')
 
         # 既存のデータを取得
-        existing_data = worksheet.get_all_records()
-
-        # 渡す辞書配列
+        existing_data = worksheet.get_values()
 
         # 現在の日付を取得
         current_date = datetime.datetime.now().strftime("%Y/%m/%d")
@@ -51,14 +48,14 @@ def operate_sheet(mode, data = ''):
         for asin, quantity in data.items():
             row_exists = False
             for row in existing_data:
-                if row["ASIN"] == asin:
+                if row[0] == asin:
                     row_exists = True
-                    row_index = existing_data.index(row) + 2  # 行のインデックス（1から始まる）を取得
+                    row_index = existing_data.index(row) + 1
                     worksheet.update_cell(row_index, new_column_index, quantity)
                     break
 
             if not row_exists:
-                new_row = [asin, "", ""] + [""] * (new_column_index - 4) + [quantity]
+                new_row = [asin, ""] + [""] * (new_column_index - 2) + [quantity]
                 worksheet.append_row(new_row)
 
         print('スプレッドシートへの入力が完了しました。')
