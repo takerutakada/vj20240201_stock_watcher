@@ -19,18 +19,20 @@ SETTING_DIR = 'settings'
 # else:
 # # スクリプトからの実行時
 # dir_path = f'{os.path.dirname(__file__)}/{SETTING_DIR}'
+dir_path = f'{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}'
+print(dir_path)
 
-# ini_file = configparser.ConfigParser()
-# ini_file.read(f'{dir_path}/config.ini', 'UTF-8')
-# WORKBOOK_KEY = ini_file.get('SPREAD-SHEETS', 'WORKBOOK_KEY')
+ini_file = configparser.ConfigParser()
+ini_file.read(f'{dir_path}/config.ini', 'UTF-8')
+WORKBOOK_KEY = ini_file.get('SPREAD-SHEETS', 'WORKBOOK_KEY')
 # WORKBOOK_KEY = '1bW-mhl-2NasK8uqPWI85Ur2Vm6qpjUNoifxf5GkdQMI'
-WORKBOOK_KEY = sys.argv[1]
+# WORKBOOK_KEY = sys.argv[1]
 
 def operate_sheet(mode, data = ''):
 
     gc = gspread.oauth(
-        credentials_filename = f'{SETTING_DIR}/client_secret.json',
-        authorized_user_filename = f'{SETTING_DIR}/authorized_user.json',
+        credentials_filename = f'{dir_path}/client_secret.json',
+        authorized_user_filename = f'{dir_path}/authorized_user.json',
         )
 
     # スプレッドシートを開く
