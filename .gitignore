@@ -1,5 +1,4 @@
-/*.json
-/*.ini
-/*.mp4
+settings
 env
+/*.mp4
 __pycache__

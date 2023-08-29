@@ -1,31 +1,42 @@
+import configparser
 import time
 import datetime
 import gspread
 import os
+import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-# # ASINsリストを定義
-# asins = ["B0B9H67NYT", "B0B9GMPXGN", "B0B9GP8WF8"]
+# 設定ファイル
+SETTING_DIR = 'settings'
+
+# if getattr(sys, 'frozen', False):
+# # 実行ファイルからの実行時
+#     dir_path = sys._MEIPASS
+# else:
+# # スクリプトからの実行時
+# dir_path = f'{os.path.dirname(__file__)}/{SETTING_DIR}'
+
+# ini_file = configparser.ConfigParser()
+# ini_file.read(f'{dir_path}/config.ini', 'UTF-8')
+# WORKBOOK_KEY = ini_file.get('SPREAD-SHEETS', 'WORKBOOK_KEY')
+# WORKBOOK_KEY = '1bW-mhl-2NasK8uqPWI85Ur2Vm6qpjUNoifxf5GkdQMI'
+WORKBOOK_KEY = sys.argv[1]
 
 def operate_sheet(mode, data = ''):
 
-    WORKBOOK_KEY = '1bW-mhl-2NasK8uqPWI85Ur2Vm6qpjUNoifxf5GkdQMI'
-
-    dir_path = os.path.dirname(__file__)
     gc = gspread.oauth(
-                    credentials_filename=os.path.join(dir_path, "client_secret.json"),
-                    authorized_user_filename=os.path.join(dir_path, "authorized_user.json"),
-                    )
+        credentials_filename = f'{SETTING_DIR}/client_secret.json',
+        authorized_user_filename = f'{SETTING_DIR}/authorized_user.json',
+        )
 
     # スプレッドシートを開く
     worksheet = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
 
     if mode == 'r':
-        print('operate_sheet_r')
         return worksheet.col_values(1)[1:]
 
     elif mode == 'w':
@@ -104,7 +115,6 @@ def get_data(asins):
 
                 # 10+を選択
                 while 'product' in driver.current_url:
-                    print(driver.current_url)
                     print('キャンペーン広告をクリックしました。ブラウザバックします')
                     driver.back()
                     time.sleep(2)
@@ -153,7 +163,6 @@ def main_func():
     # 実行
     asins = operate_sheet('r')
     data = get_data(asins)
-    # data = {"B0B9H67NYT": 52, "B0B9GMPXGN": 54, "B0B9GP8WF8": 49}
     operate_sheet('w', data)
     # 時間計測終了
     time_end = time.perf_counter()
