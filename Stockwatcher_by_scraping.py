@@ -82,8 +82,8 @@ def get_data(asins):
         is_success = False
         while not is_success:
             try:
-                # Amazon商品検索用URLを構築
-                url = f"https://www.amazon.co.jp/s?k={asin}"
+                # Amazon商品検索用URLを構築（&rh=p_...以降でスポンサー広告商品を除外）
+                url = f"https://www.amazon.co.jp/s?k={asin}&rh=p_36%3A1000-%2Cp_8%3A0-&__mk_ja_JP=カタカナ&tag=krutw-22&ref=nb_sb_noss_1"
 
                 # URLにアクセス
                 driver.get(url)
@@ -127,12 +127,6 @@ def get_data(asins):
                 available_quantity = quantity_input.get_attribute("value")
                 print(f"ASIN: {asin} - 購入可能数量: {available_quantity}")
 
-                # 削除ボタンをクリックして商品をカートから削除
-                driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-                delete_button = driver.find_element(By.CSS_SELECTOR, "span.a-size-small.sc-action-delete")
-                delete_button.click()
-                time.sleep(2)
-
                 data[asin] = available_quantity
                 is_success = True
 
@@ -155,9 +149,10 @@ def main_func():
     # 時間計測開始
     time_sta = time.perf_counter()
     # 実行
-    asins = operate_sheet('r')
+    # asins = operate_sheet('r')
+    asins = ["B0B9H67NYT", "B0B9GMWGVQ", "B0B9GKY789", "B0B9GMPXGN", "B0B9GP8WF8"]
     data = get_data(asins)
-    operate_sheet('w', data)
+    # operate_sheet('w', data)
     # 時間計測終了
     time_end = time.perf_counter()
     # 経過時間（秒）
