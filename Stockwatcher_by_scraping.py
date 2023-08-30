@@ -149,10 +149,9 @@ def main_func():
     # 時間計測開始
     time_sta = time.perf_counter()
     # 実行
-    # asins = operate_sheet('r')
-    asins = ["B0B9H67NYT", "B0B9GMWGVQ", "B0B9GKY789", "B0B9GMPXGN", "B0B9GP8WF8"]
+    asins = operate_sheet('r')
     data = get_data(asins)
-    # operate_sheet('w', data)
+    operate_sheet('w', data)
     # 時間計測終了
     time_end = time.perf_counter()
     # 経過時間（秒）
