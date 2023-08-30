@@ -13,20 +13,11 @@ from selenium.webdriver.common.keys import Keys
 # 設定ファイル
 SETTING_DIR = 'settings'
 
-# if getattr(sys, 'frozen', False):
-# # 実行ファイルからの実行時
-#     dir_path = sys._MEIPASS
-# else:
-# # スクリプトからの実行時
-# dir_path = f'{os.path.dirname(__file__)}/{SETTING_DIR}'
 dir_path = f'{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}'
-print(dir_path)
 
 ini_file = configparser.ConfigParser()
 ini_file.read(f'{dir_path}/config.ini', 'UTF-8')
 WORKBOOK_KEY = ini_file.get('SPREAD-SHEETS', 'WORKBOOK_KEY')
-# WORKBOOK_KEY = '1bW-mhl-2NasK8uqPWI85Ur2Vm6qpjUNoifxf5GkdQMI'
-# WORKBOOK_KEY = sys.argv[1]
 
 def operate_sheet(mode, data = ''):
 
@@ -36,7 +27,7 @@ def operate_sheet(mode, data = ''):
         )
 
     # スプレッドシートを開く
-    worksheet = gc.open_by_key(WORKBOOK_KEY).worksheet('Sheet1')
+    worksheet = gc.open_by_key(WORKBOOK_KEY).worksheet('シート1')
 
     if mode == 'r':
         return worksheet.col_values(1)[1:]
@@ -148,10 +139,11 @@ def get_data(asins):
             except:
                 if retry_count > max_retries:
                     print(f'{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。')
+                    data[asin] = 'error'
+                    break
                 else:
                     retry_count += 1
                     print(f'{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）')
-                    continue
 
     # WebDriverを閉じる
     driver.quit()
