@@ -1,5 +1,9 @@
 settings
 settings_bu
 env
+dist
+build
+/*.spec
+/*.exe
 /*.mp4
 __pycache__

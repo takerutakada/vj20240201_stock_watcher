@@ -69,10 +69,11 @@ def get_data(asins):
     # WebDriverの初期化
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
     # 暗黙的な待機（find_element_by_ 使用時、要素が見つかるまでの待機時間）
-    driver.implicitly_wait(20)
+    driver.implicitly_wait(180)
 
     driver.set_window_position(0,0) # ブラウザの位置を左上に固定
     driver.set_window_size(860,1200) # ブラウザのウィンドウサイズを固定
@@ -130,8 +131,9 @@ def get_data(asins):
                 data[asin] = available_quantity
                 is_success = True
 
-            except:
+            except Exception as e:
                 if retry_count > max_retries:
+                    print(e)
                     print(f'{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。')
                     data[asin] = 'error'
                     break
@@ -151,7 +153,7 @@ def main_func():
     # 実行
     asins = operate_sheet('r')
     data = get_data(asins)
-    operate_sheet('w', data)
+    # operate_sheet('w', data)
     # 時間計測終了
     time_end = time.perf_counter()
     # 経過時間（秒）
