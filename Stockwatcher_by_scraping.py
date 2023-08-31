@@ -71,10 +71,6 @@ def get_data(asins):
     options.add_argument('--headless')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-
-    # 暗黙的な待機（find_element_by_ 使用時、要素が見つかるまでの待機時間）
-    driver.implicitly_wait(180)
-
     driver.set_window_position(0,0) # ブラウザの位置を左上に固定
     driver.set_window_size(860,1200) # ブラウザのウィンドウサイズを固定
 
@@ -92,10 +88,14 @@ def get_data(asins):
                 # URLにアクセス
                 driver.get(url)
 
+                driver.implicitly_wait(20)
+
                 # 商品詳細ページに遷移
                 product_link = driver.find_element(By.CSS_SELECTOR, ".s-result-item a")
                 product_link.click()
                 driver.switch_to.window(driver.window_handles[-1])
+
+                driver.implicitly_wait(20)
 
                 # カートに追加
                 add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
@@ -104,9 +104,13 @@ def get_data(asins):
                 # カートに移動
                 driver.get("https://www.amazon.co.jp/gp/cart/view.html")
 
+                driver.implicitly_wait(20)
+
                 # 数量選択ページに遷移
                 quantity_button = driver.find_element(By.CSS_SELECTOR, "#a-autoid-0-announce")
                 quantity_button.click()
+
+                driver.implicitly_wait(20)
 
                 # 10+を選択
                 while 'product' in driver.current_url:
@@ -114,6 +118,8 @@ def get_data(asins):
                     driver.back()
                 ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
                 ten_plus_option.click()
+
+                driver.implicitly_wait(20)
 
                 # 数量入力
                 quantity_input = driver.find_element(By.NAME, "quantityBox")
@@ -124,6 +130,9 @@ def get_data(asins):
 
                 # 購入可能数量を取得して出力
                 driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+
+                driver.implicitly_wait(20)
+
                 quantity_input = driver.find_element(By.NAME, "quantityBox")
                 available_quantity = quantity_input.get_attribute("value")
                 print(f"ASIN: {asin} - 購入可能数量: {available_quantity}")
