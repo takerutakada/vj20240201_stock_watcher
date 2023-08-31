@@ -78,48 +78,51 @@ def get_data(asins):
 
     for asin in asins:
         retry_count = 0
-        max_retries = 3
+        max_retries = 9
         is_success = False
         while not is_success:
             try:
                 # Amazon商品検索用URLを構築（&rh=p_...以降でスポンサー広告商品を除外）
                 url = f"https://www.amazon.co.jp/s?k={asin}&rh=p_36%3A1000-%2Cp_8%3A0-&__mk_ja_JP=カタカナ&tag=krutw-22&ref=nb_sb_noss_1"
 
+                driver.implicitly_wait(20 + retry_count * 10)
+
                 # URLにアクセス
                 driver.get(url)
-
-                driver.implicitly_wait(20)
 
                 # 商品詳細ページに遷移
                 product_link = driver.find_element(By.CSS_SELECTOR, ".s-result-item a")
                 product_link.click()
-                driver.switch_to.window(driver.window_handles[-1])
 
                 driver.implicitly_wait(20)
+
+                driver.switch_to.window(driver.window_handles[-1])
 
                 # カートに追加
                 add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
                 add_to_cart_button.click()
 
+                driver.implicitly_wait(20)
+
                 # カートに移動
                 driver.get("https://www.amazon.co.jp/gp/cart/view.html")
 
-                driver.implicitly_wait(20)
-
                 # 数量選択ページに遷移
                 quantity_button = driver.find_element(By.CSS_SELECTOR, "#a-autoid-0-announce")
-                quantity_button.click()
 
                 driver.implicitly_wait(20)
+
+                quantity_button.click()
 
                 # 10+を選択
                 while 'product' in driver.current_url:
                     print('キャンペーン広告をクリックしました。ブラウザバックします')
                     driver.back()
                 ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
-                ten_plus_option.click()
 
                 driver.implicitly_wait(20)
+
+                ten_plus_option.click()
 
                 # 数量入力
                 quantity_input = driver.find_element(By.NAME, "quantityBox")
@@ -128,10 +131,10 @@ def get_data(asins):
                 quantity_input.send_keys(Keys.RETURN)
                 time.sleep(3)
 
+                driver.implicitly_wait(20)
+
                 # 購入可能数量を取得して出力
                 driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-
-                driver.implicitly_wait(20)
 
                 quantity_input = driver.find_element(By.NAME, "quantityBox")
                 available_quantity = quantity_input.get_attribute("value")
@@ -162,7 +165,7 @@ def main_func():
     # 実行
     asins = operate_sheet('r')
     data = get_data(asins)
-    # operate_sheet('w', data)
+    operate_sheet('w', data)
     # 時間計測終了
     time_end = time.perf_counter()
     # 経過時間（秒）
