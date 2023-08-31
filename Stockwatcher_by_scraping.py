@@ -68,8 +68,11 @@ def get_data(asins):
 
     # WebDriverの初期化
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+
+    # 暗黙的な待機（find_element_by_ 使用時、要素が見つかるまでの待機時間）
+    driver.implicitly_wait(20)
 
     driver.set_window_position(0,0) # ブラウザの位置を左上に固定
     driver.set_window_size(860,1200) # ブラウザのウィンドウサイズを固定
@@ -101,16 +104,13 @@ def get_data(asins):
                 driver.get("https://www.amazon.co.jp/gp/cart/view.html")
 
                 # 数量選択ページに遷移
-                time.sleep(2)
                 quantity_button = driver.find_element(By.CSS_SELECTOR, "#a-autoid-0-announce")
                 quantity_button.click()
-                time.sleep(2)
 
                 # 10+を選択
                 while 'product' in driver.current_url:
                     print('キャンペーン広告をクリックしました。ブラウザバックします')
                     driver.back()
-                    time.sleep(2)
                 ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
                 ten_plus_option.click()
 
@@ -119,9 +119,9 @@ def get_data(asins):
                 quantity_input.send_keys(Keys.CONTROL + "a")
                 quantity_input.send_keys("999")
                 quantity_input.send_keys(Keys.RETURN)
+                time.sleep(3)
 
                 # 購入可能数量を取得して出力
-                time.sleep(2)
                 driver.get("https://www.amazon.co.jp/gp/cart/view.html")
                 quantity_input = driver.find_element(By.NAME, "quantityBox")
                 available_quantity = quantity_input.get_attribute("value")
