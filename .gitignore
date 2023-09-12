@@ -1,8 +1,8 @@
-settings
-settings_bu
-env
-dist
-build
+settings*/
+env/
+dist/
+build/
+logs/
 /*.spec
 /*.exe
 /*.mp4

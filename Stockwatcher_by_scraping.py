@@ -4,6 +4,8 @@ import datetime
 import gspread
 import os
 import sys
+import logging
+import logging.handlers
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
@@ -11,13 +13,36 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 設定ファイル
-SETTING_DIR = 'settings'
+SETTING_DIR = 'settings_test_2'
 
 dir_path = f'{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}'
 
 ini_file = configparser.ConfigParser()
 ini_file.read(f'{dir_path}/config.ini', 'UTF-8')
 WORKBOOK_KEY = ini_file.get('SPREAD-SHEETS', 'WORKBOOK_KEY')
+
+# ログ取得 https://blog.hiros-dot.net/?p=10297 https://irukanobox.blogspot.com/2020/09/python.html
+log = logging.getLogger(__name__)
+# ログ出力レベルの設定
+log.setLevel(logging.DEBUG)
+
+# ローテーティングファイルハンドラを作成
+rh = logging.handlers.RotatingFileHandler(
+        r'./log/app.log',
+        encoding='utf-8',
+        maxBytes=100,
+        backupCount=7
+    )
+
+# ロガーに追加
+log.addHandler(rh)
+
+log.debug('===== start =====')
+
+for num in range(30):
+    log.debug('debug:{}'.format(str(num)))
+
+log.debug('===== end =====')
 
 def operate_sheet(mode, data = ''):
 
@@ -68,7 +93,7 @@ def get_data(asins):
 
     # WebDriverの初期化
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.set_window_position(0,0) # ブラウザの位置を左上に固定
@@ -78,7 +103,7 @@ def get_data(asins):
 
     for asin in asins:
         retry_count = 0
-        max_retries = 9
+        max_retries = 4
         is_success = False
         while not is_success:
             try:
