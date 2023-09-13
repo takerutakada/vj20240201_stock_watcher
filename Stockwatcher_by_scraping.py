@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 import logging.handlers
+from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
@@ -13,7 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 設定ファイル
-SETTING_DIR = 'settings_test_2'
+SETTING_DIR = 'settings'
 
 dir_path = f'{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}'
 
@@ -21,35 +22,39 @@ ini_file = configparser.ConfigParser()
 ini_file.read(f'{dir_path}/config.ini', 'UTF-8')
 WORKBOOK_KEY = ini_file.get('SPREAD-SHEETS', 'WORKBOOK_KEY')
 
-# ログ取得 https://blog.hiros-dot.net/?p=10297 https://irukanobox.blogspot.com/2020/09/python.html
-log = logging.getLogger(__name__)
-# ログ出力レベルの設定
-log.setLevel(logging.DEBUG)
-
-# ローテーティングファイルハンドラを作成
-rh = logging.handlers.RotatingFileHandler(
-        r'./log/app.log',
-        encoding='utf-8',
-        maxBytes=100,
-        backupCount=7
-    )
-
-# ロガーに追加
-log.addHandler(rh)
-
-log.debug('===== start =====')
-
-for num in range(30):
-    log.debug('debug:{}'.format(str(num)))
-
-log.debug('===== end =====')
+# ログの設定
+# ログディレクトリのパス
+LOG_DIR = "logs"
+log_dir_path = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{LOG_DIR}"
+os.makedirs(LOG_DIR, exist_ok=True)
+# ログフォーマットを設定
+log_format = "%(asctime)s [%(levelname)s]: %(message)s"
+logging.basicConfig(format=log_format, level=logging.INFO)
+# ログファイル名に現在の日時を含む
+current_date = datetime.datetime.now().strftime("%Y%m%d%H%M")
+log_file = os.path.join(log_dir_path, f"Stockwatcher_by_scraping_{current_date}.log")
+# ログファイルのローテーション（1週間以上前のログファイルを削除）
+one_week_ago = datetime.datetime.now() - datetime.timedelta(days=6)
+for filename in os.listdir(log_dir_path):
+    file_path = os.path.join(log_dir_path, filename)
+    if filename.endswith(".log"):
+        log_date_str = filename.split("_")[3].split(".")[0]
+        log_date = datetime.datetime.strptime(log_date_str, "%Y%m%d%H%M")
+        if log_date <= one_week_ago:
+            os.remove(file_path)
+# ログファイルハンドラを追加
+file_handler = logging.FileHandler(log_file)
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(logging.Formatter(log_format))
+# ルートロガーにハンドラを追加
+root_logger = logging.getLogger()
+root_logger.addHandler(file_handler)
 
 def operate_sheet(mode, data = ''):
 
-    gc = gspread.oauth(
-        credentials_filename = f'{dir_path}/client_secret.json',
-        authorized_user_filename = f'{dir_path}/authorized_user.json',
-        )
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(f'{dir_path}/service_account.json', scope)
+    gc = gspread.authorize(credentials)
 
     # スプレッドシートを開く
     worksheet = gc.open_by_key(WORKBOOK_KEY).worksheet('シート1')
@@ -87,7 +92,7 @@ def operate_sheet(mode, data = ''):
                 new_row = [asin, ""] + [""] * (new_column_index - 2) + [quantity]
                 worksheet.append_row(new_row)
 
-        print('スプレッドシートへの入力が完了しました。')
+        logging.info('スプレッドシートへの入力が完了しました。')
 
 def get_data(asins):
 
@@ -141,7 +146,7 @@ def get_data(asins):
 
                 # 10+を選択
                 while 'product' in driver.current_url:
-                    print('キャンペーン広告をクリックしました。ブラウザバックします')
+                    logging.info('キャンペーン広告をクリックしました。ブラウザバックします')
                     driver.back()
                 ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
 
@@ -163,24 +168,24 @@ def get_data(asins):
 
                 quantity_input = driver.find_element(By.NAME, "quantityBox")
                 available_quantity = quantity_input.get_attribute("value")
-                print(f"ASIN: {asin} - 購入可能数量: {available_quantity}")
+                logging.info(f"ASIN: {asin} - 購入可能数量: {available_quantity}")
 
                 data[asin] = available_quantity
                 is_success = True
 
             except Exception as e:
                 if retry_count > max_retries:
-                    print(e)
-                    print(f'{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。')
+                    logging.error(e)
+                    logging.error(f'{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。')
                     data[asin] = 'error'
                     break
                 else:
                     retry_count += 1
-                    print(f'{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）')
+                    logging.warning(f'{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）')
 
     # WebDriverを閉じる
     driver.quit()
-    print('データの取得が完了しました。')
+    logging.info('データの取得が完了しました。')
     return data
 
 def main_func():
@@ -195,7 +200,7 @@ def main_func():
     time_end = time.perf_counter()
     # 経過時間（秒）
     tim = time_end- time_sta
-    print(f'処理時間：{round(tim, 2)}秒')
+    logging.info(f'処理時間：{round(tim, 2)}秒')
 
 if __name__ == '__main__':
 
