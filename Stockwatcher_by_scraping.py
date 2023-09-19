@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 設定ファイル
-SETTING_DIR = 'settings_test'
+SETTING_DIR = 'settings_prod'
 
 dir_path = f'{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}'
 
@@ -106,7 +106,7 @@ def get_data(asins):
 
     for asin in asins:
         retry_count = 0
-        max_retries = 4
+        max_retries = 2
         is_success = False
         while not is_success:
             try:
@@ -187,18 +187,21 @@ def get_data(asins):
     return data
 
 def main_func():
-
-    # 時間計測開始
-    time_sta = time.perf_counter()
-    # 実行
-    asins = operate_sheet('r')
-    data = get_data(asins)
-    operate_sheet('w', data)
-    # 時間計測終了
-    time_end = time.perf_counter()
-    # 経過時間（秒）
-    tim = time_end- time_sta
-    logging.info(f'処理時間：{round(tim, 2)}秒')
+    try:
+        # 時間計測開始
+        time_sta = time.perf_counter()
+        # 実行
+        asins = operate_sheet('r')
+        data = get_data(asins)
+        operate_sheet('w', data)
+        # 時間計測終了
+        time_end = time.perf_counter()
+        # 経過時間（秒）
+        tim = time_end- time_sta
+        logging.info(f'処理時間：{round(tim, 2)}秒')
+    except Exception as e:
+        logging.error('エラー発生：')
+        logging.error(e)
 
 if __name__ == '__main__':
 
