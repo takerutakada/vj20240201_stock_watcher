@@ -8,13 +8,11 @@ import logging
 import logging.handlers
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 設定ファイル
-SETTING_DIR = 'settings'
+SETTING_DIR = 'settings_test'
 
 dir_path = f'{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}'
 
@@ -100,7 +98,7 @@ def get_data(asins):
     options = webdriver.ChromeOptions()
     # options.add_argument('--headless')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome(options=options)
     driver.set_window_position(0,0) # ブラウザの位置を左上に固定
     driver.set_window_size(860,1200) # ブラウザのウィンドウサイズを固定
 
