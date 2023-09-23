@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 設定ファイル
-SETTING_DIR = 'settings_prod'
+SETTING_DIR = 'settings'
 
 dir_path = f'{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}'
 
@@ -127,7 +127,10 @@ def get_data(asins):
                 driver.switch_to.window(driver.window_handles[-1])
 
                 # カートに追加
-                add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
+                if len(driver.find_elements(By.CSS_SELECTOR, "#add-to-cart-button")):
+                    add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button")
+                else:
+                    add_to_cart_button = driver.find_element(By.CSS_SELECTOR, "#add-to-cart-button-ubb")
                 add_to_cart_button.click()
 
                 driver.implicitly_wait(20)
@@ -180,6 +183,10 @@ def get_data(asins):
                 else:
                     retry_count += 1
                     logging.warning(f'{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）')
+            finally:
+                if len(driver.window_handles) > 1:
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[-1])
 
     # WebDriverを閉じる
     driver.quit()
