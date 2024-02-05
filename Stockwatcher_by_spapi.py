@@ -1,3 +1,32 @@
+"""
+amazon からの返答
+
+お世話になっております。
+APIサポートでございます。
+
+Catalog Items APIを呼び出しているとのことですが、お客様がお持ちの以下のロールではCatalog Items APIを呼びだすことが出来ません。
+
+・Amazonから発送
+・購入者にフィードバックを依頼
+・財務会計
+・在庫と注文の追跡
+・ブランド分析
+
+Catalog Items APIのご使用にはProduct Listing(商品の出品) のロールが必要となります。
+https://developer-docs.amazon.com/sp-api/docs/product-listing-role
+
+テストコールを行う場合には、Sellers API をお試しください。
+https://developer-docs.amazon.com/sp-api/docs/sellers-api-v1-reference#get-sellersv1marketplaceparticipations
+
+詳細につきましては以下のドキュメントの5. テストコール⼿順をご参照ください。
+https://spapi-apac-doc.s3.ap-northeast-1.amazonaws.com/SP-API%E8%A8%AD%E5%AE%9A%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB_%E6%97%A5%E6%9C%AC%E8%AA%9E_20230316.pdf
+
+引き続きよろしくお願いいたします。
+
+宜しくお願いいたします。
+
+"""
+
 import configparser
 from sp_api.api import Products
 from sp_api.api import Catalog
