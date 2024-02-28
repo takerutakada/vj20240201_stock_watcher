@@ -1,27 +1,28 @@
-# このソフトについて（2023-09-01）
+## 概要
 
-## ファイル構成
+スプレッドシートで指定した商品及び出品者の Amazon 在庫数を取得し、スプレッドシートに入力します。
 
+## 実行間隔
 
- - 上記構成からファイルの場所を動かさないようにしてください。
-- また、「*」がついているフォルダ及びファイルは名前を変更しないでください。
-- 親フォルダ（「Stockwatcher_by_scraping」）自体はどこに置いても構いませんが、タスクスケジューラでは実行パスを「」にしているため、移動後は実行パスを修正する必要があります。
+毎日 JST 06:00 に実行します。
 
-## 処理の流れ
+## 設定の編集
 
+### 実行間隔の変更
 
-## 実行方法
+- `.github/workflows/stock_watcher.yml` L7 を編集
 
-### タスクスケジューラから実行
+### アカウント情報の変更
 
-本ソフトは毎朝6時に定期実行されます。
+GitHub リポジトリ > Settings > Secrets and variables > Actions > Repository secrets から以下の各 secrets を編集（鉛筆マーク）
 
-以下の流れに沿ってタスクスケジューラの設定確認・変更ができます。
+- `WORKBOOK_KEY`: スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
+- `JSON`: サービスアカウント
+- `SLACK_WEBHOOK`: Slack エラー通知用 Webhook
 
-### 手動実行
+## 手動実行方法
 
-
-## 認証情報の設定
-
-
-### 困った時は
+定期実行が正常に完了しなかった場合、手動での再実行が可能です。
+[アクションのページ](https://github.com/vyper-japan/boss_spreadsheet/actions/workflows/stock_watcher.yml)にアクセスし、
+「Run workflow」 > 「Run workflow」をクリックしてください。
+再実行してもうまくいかない場合、Slack にてご連絡ください。

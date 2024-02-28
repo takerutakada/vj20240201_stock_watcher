@@ -1,0 +1,52 @@
+name: stock_watcher
+on:
+  # push 時に実行（テスト用）
+  # push:
+  # JST 06:00 に実行←要確認
+#   schedule:
+#    - cron: '0 21 * * *'
+  # 手動実行
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+      - name: Install Chrome
+        run: |
+          sudo wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo apt update
+          sudo apt-get install google-chrome-stable
+      - name: Install Package
+        run: pip install -r requirements.txt
+      - name: Create Json
+        id: create-json
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "service_account_test.json"
+          json: ${{ secrets.JSON_TEST }}
+        #   name: "service_account.json"
+        #   json: ${{ secrets.JSON }}
+          dir: "settings/"
+      - name: Run stock_watcher
+        env:
+          WORKBOOK_KEY: ${{ secrets.WORKBOOK_KEY }}
+          WORKBOOK_KEY_TEST: ${{ secrets.WORKBOOK_KEY_TEST }}
+          TZ: 'Asia/Tokyo'
+        run: python stock_watcher.py
+        timeout-minutes: 20
+      # 失敗時 Slack に通知
+      - name: Slack Notification on Failure
+        uses: rtCamp/action-slack-notify@v2
+        if: ${{ failure() }}
+        env:
+          SLACK_USERNAME: stock_watcher_bot
+          SLACK_ICON: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: 実行に失敗しました
+          SLACK_COLOR: danger
+          SLACK_MESSAGE: 上記 Actions URL からログを確認してください
