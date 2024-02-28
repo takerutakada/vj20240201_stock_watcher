@@ -27,14 +27,11 @@ if ACTION_ENV == "Local":
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
 elif ACTION_ENV == "GitHub Actions":
+    JSON = "service_account.json"
     if MODE == "TEST":
-        # service_account.json
-        JSON = os.environ.get("JSON_TEST")
         # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
         WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY_TEST")
     elif MODE == "PROD":
-        # service_account.json
-        JSON = os.environ.get("JSON")
         # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
         WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY")
 

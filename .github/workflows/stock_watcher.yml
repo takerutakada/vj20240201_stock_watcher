@@ -27,9 +27,8 @@ jobs:
         id: create-json
         uses: jsdaniell/create-json@v1.2.2
         with:
-          name: "service_account_test.json"
+          name: "service_account.json"
           json: ${{ secrets.JSON_TEST }}
-        #   name: "service_account.json"
         #   json: ${{ secrets.JSON }}
           dir: "settings/"
       - name: Run stock_watcher
