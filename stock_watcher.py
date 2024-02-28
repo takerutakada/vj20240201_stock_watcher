@@ -10,8 +10,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 実行環境
-ACTION_ENV = "Local"
-# ACTION_ENV = "GitHub Actions"
+# ACTION_ENV = "Local"
+ACTION_ENV = "GitHub Actions"
 # 設定ファイル保管場所
 SETTING_DIR = "settings"
 SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}"
@@ -27,10 +27,16 @@ if ACTION_ENV == "Local":
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
 elif ACTION_ENV == "GitHub Actions":
-    # service_account.json
-    JSON = os.environ.get("JSON")
-    # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
-    WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY")
+    if MODE == "TEST":
+        # service_account.json
+        JSON = os.environ.get("JSON_TEST")
+        # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
+        WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY_TEST")
+    elif MODE == "PROD":
+        # service_account.json
+        JSON = os.environ.get("JSON")
+        # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
+        WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY")
 
 
 def google_auth():
@@ -118,7 +124,7 @@ def add_to_cart(driver, asin, target):
     is_success = False
     while not is_success:
         try:
-            print(f"ASIN: {asin}")
+            print(f"ASIN: {asin} / target: {target}")
             # Amazon商品検索用URLを構築（&rh=p_...以降でスポンサー広告商品を除外）
             url = f"https://www.amazon.co.jp/s?k={asin}&rh=p_36%3A1000-%2Cp_8%3A0-&__mk_ja_JP=カタカナ&tag=krutw-22&ref=nb_sb_noss_1"
             # URLにアクセス
