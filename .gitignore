@@ -1,9 +1,3 @@
-settings*/
 env/
-dist/
-build/
-logs/
-/*.spec
-/*.exe
-/*.mp4
-__pycache__
+*.ini
+*.json

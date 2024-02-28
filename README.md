@@ -23,6 +23,6 @@ GitHub リポジトリ > Settings > Secrets and variables > Actions > Repository
 ## 手動実行方法
 
 定期実行が正常に完了しなかった場合、手動での再実行が可能です。
-[アクションのページ](https://github.com/vyper-japan/boss_spreadsheet/actions/workflows/stock_watcher.yml)にアクセスし、
+[アクションのページ](https://github.com/vyper-japan/stock_watcher/actions/workflows/stock_watcher.yml)にアクセスし、
 「Run workflow」 > 「Run workflow」をクリックしてください。
 再実行してもうまくいかない場合、Slack にてご連絡ください。
