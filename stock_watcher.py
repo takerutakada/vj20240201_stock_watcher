@@ -133,8 +133,9 @@ def add_to_cart(driver, asin, target):
             seller_name_elements = driver.find_elements(
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
-            time.sleep(10)
             for seller_name_element in seller_name_elements:
+                print("パターン1")
+                print(seller_name_element.text)
                 # 出品者の中に target が存在する
                 if seller_name_element.text == target:
                     add_to_cart_url = seller_name_element.get_attribute("href")
@@ -156,8 +157,9 @@ def add_to_cart(driver, asin, target):
             seller_name_elements = driver.find_elements(
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
-            time.sleep(10)
             for seller_name_element in seller_name_elements:
+                print("パターン2")
+                print(seller_name_element.text)
                 # 出品者の中に target が存在する
                 if seller_name_element.text == target:
                     add_to_cart_url = seller_name_element.get_attribute("href")
