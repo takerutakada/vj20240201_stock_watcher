@@ -143,7 +143,7 @@ def add_to_cart(driver, asin, target):
                     keys_to_send = [Keys.TAB, Keys.ENTER, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.ENTER]
                     for key in keys_to_send:
                         action.send_keys(key).perform()
-                    time.sleep(5)
+                    time.sleep(10)
                     stock_count = "get_by_stock_count"
                     break
             else:
@@ -165,7 +165,7 @@ def add_to_cart(driver, asin, target):
                     keys_to_send = [Keys.TAB, Keys.ENTER, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.ENTER]
                     for key in keys_to_send:
                         action.send_keys(key).perform()
-                    time.sleep(5)
+                    time.sleep(10)
                     stock_count = "get_by_stock_count"
                     break
             else:
@@ -271,7 +271,7 @@ def get_stock_count(driver):
             quantity_input.send_keys(Keys.CONTROL + "a")
             quantity_input.send_keys("999")
             quantity_input.send_keys(Keys.RETURN)
-            time.sleep(3)
+            time.sleep(10)
             # 購入可能数量を取得して出力
             driver.get("https://www.amazon.co.jp/gp/cart/view.html")
             quantity_input = driver.find_element(By.NAME, "quantityBox")
