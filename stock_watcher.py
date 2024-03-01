@@ -53,7 +53,7 @@ def google_auth():
     return auth
 
 
-def get_asin2target(auth):
+def get_asins_and_targets(auth):
     """
     Get asin2target from spreadsheet
 
@@ -62,17 +62,18 @@ def get_asin2target(auth):
     auth : gspread.authorize()
         authorization for operating spreadsheet
 
-    Return
+    Returns
     ----------
-    asin2target : dict
-        dict(Key: asins / Value: target)
+    asins : list
+        List of asin
+    targets : list
+        List of target
     """
 
     sheet = auth.open_by_key(WORKBOOK_KEY).worksheet("シート1")
     asins = sheet.col_values(1)[1:]
     targets = sheet.col_values(3)[1:]
-    asin2target = dict(zip(asins, targets))
-    return asin2target
+    return asins, targets
 
 
 def init_driver():
@@ -116,68 +117,81 @@ def add_to_cart(driver, asin, target):
         stock count
     """
 
+    def track_target():
+
+        out_of_stock = driver.find_elements(By.ID, "outOfStock")
+        olp_link_widget = driver.find_elements(
+            By.XPATH, "//*[@id='olpLinkWidget_feature_div']/div[2]"
+        )
+        buybox_see_all_buying_choices = driver.find_elements(By.XPATH, "//*[@id='buybox-see-all-buying-choices']/span/a")
+        # 商品が在庫切れ
+        if len(out_of_stock):
+            print("- 在庫切れです")
+            stock_count = 0
+        elif len(buybox_see_all_buying_choices):
+            buybox_see_all_buying_choices[0].click()
+            seller_name_elements = driver.find_elements(
+                By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
+            )
+            for seller_name_element in seller_name_elements:
+                # 出品者の中に target が存在する
+                if seller_name_element.text == target:
+                    add_to_cart_url = seller_name_element.get_attribute("href")
+                    driver.get(add_to_cart_url)
+                    # 「カートに入れる」ボタンをクリック（ElementClickInterceptedException を突破できないので力技）
+                    action = webdriver.ActionChains(driver)
+                    keys_to_send = [Keys.TAB, Keys.ENTER, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.ENTER]
+                    for key in keys_to_send:
+                        action.send_keys(key).perform()
+                    time.sleep(5)
+                    stock_count = "get_by_stock_count"
+                    break
+            else:
+                print(f"- {target} は出品していません")
+                stock_count = 0
+        # 複数の出品者が存在する
+        elif len(olp_link_widget):
+            olp_link_widget[0].click()
+            seller_name_elements = driver.find_elements(
+                By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
+            )
+            for seller_name_element in seller_name_elements:
+                # 出品者の中に target が存在する
+                if seller_name_element.text == target:
+                    add_to_cart_url = seller_name_element.get_attribute("href")
+                    driver.get(add_to_cart_url)
+                    # 「カートに入れる」ボタンをクリック（ElementClickInterceptedException を突破できないので力技）
+                    action = webdriver.ActionChains(driver)
+                    keys_to_send = [Keys.TAB, Keys.ENTER, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.ENTER]
+                    for key in keys_to_send:
+                        action.send_keys(key).perform()
+                    time.sleep(5)
+                    stock_count = "get_by_stock_count"
+                    break
+            else:
+                print(f"- {target} は出品していません")
+                stock_count = 0
+
+        return stock_count
+
     retry_count = 0
     max_retries = 2
     is_success = False
     while not is_success:
         try:
             print(f"ASIN: {asin} / target: {target}")
-            # Amazon商品検索用URLを構築（&rh=p_...以降でスポンサー広告商品を除外）
-            url = f"https://www.amazon.co.jp/s?k={asin}&rh=p_36%3A1000-%2Cp_8%3A0-&__mk_ja_JP=カタカナ&tag=krutw-22&ref=nb_sb_noss_1"
+            url = f"https://www.amazon.co.jp/dp/{asin}"
             # URLにアクセス
             driver.get(url)
-            # 先頭に「結果」という文字列の要素がない場合は商品が存在しないので、処理をスキップ
-            txt_result = driver.find_elements(
-                By.XPATH,
-                "//*[@id='search']/div[1]/div[1]/div/span[1]/div[1]/div[1]/div/span/div/div/span",
-            )
-            if not len(txt_result):
-                print("- 該当の商品が見つかりませんでした")
-                stock_count = "-"
-                break
-            # 商品詳細ページに遷移
-            product_link = driver.find_element(By.CSS_SELECTOR, ".s-result-item a")
-            product_link.click()
-            driver.switch_to.window(driver.window_handles[-1])
-            out_of_stock = driver.find_elements(By.ID, "outOfStock")
-            olp_link_widget = driver.find_elements(
-                By.XPATH, "//*[@id='olpLinkWidget_feature_div']/div[2]"
-            )
-            # 商品が在庫切れ
-            if len(out_of_stock):
-                print("- 在庫切れです")
-                stock_count = 0
-            # 複数の出品者が存在する
-            elif len(olp_link_widget):
-                olp_link_widget[0].click()
-                seller_name_elements = driver.find_elements(
-                    By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
-                )
-                for seller_name_element in seller_name_elements:
-                    # 出品者の中に target が存在する
-                    if seller_name_element.text == target:
-                        add_to_cart_url = seller_name_element.get_attribute("href")
-                        driver.get(add_to_cart_url)
-                        # 「カートに入れる」ボタンをクリック（ElementClickInterceptedException を突破できないので力技）
-                        action = webdriver.ActionChains(driver)
-                        action.send_keys(Keys.TAB).perform()
-                        action.send_keys(Keys.ENTER).perform()
-                        action.send_keys(Keys.ENTER).perform()
-                        action.send_keys(Keys.TAB).perform()
-                        action.send_keys(Keys.TAB).perform()
-                        action.send_keys(Keys.TAB).perform()
-                        action.send_keys(Keys.TAB).perform()
-                        action.send_keys(Keys.TAB).perform()
-                        action.send_keys(Keys.ENTER).perform()
-                        time.sleep(5)
-                        stock_count = "get_by_stock_count"
-                        break
-                else:
-                    print(f"- {target} は出品していません")
-                    stock_count = 0
-            else:
-                seller_name = driver.find_element(By.ID, "sellerProfileTriggerId").text
+
+            # 販売元が表示されているか判定
+            seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
+            # 販売元が表示されている
+            if len(seller_name_elements):
+                print("販売元が表示されている")
+                seller_name = seller_name_elements[0].text
                 if seller_name == target:
+                    print("販売元＝ターゲット")
                     # カートに追加
                     add_to_cart_button = driver.find_element(
                         By.XPATH, "//*[@id='add-to-cart-button']"
@@ -185,8 +199,12 @@ def add_to_cart(driver, asin, target):
                     add_to_cart_button.click()
                     stock_count = "get_by_stock_count"
                 else:
-                    print(f"- {target} は出品していません")
-                    stock_count = 0
+                    print("販売元がターゲットでない")
+                    stock_count = track_target()
+
+            else:
+                print("販売元が表示されていない")
+                stock_count = track_target()
 
         except Exception:
             if retry_count > max_retries:
@@ -209,7 +227,7 @@ def add_to_cart(driver, asin, target):
             return stock_count
 
 
-def get_stock_count(driver, asin):
+def get_stock_count(driver):
     """
     Get stock count from amazon
 
@@ -217,8 +235,6 @@ def get_stock_count(driver, asin):
     ----------
     driver : WebDriver
         Initialized WebDriver
-    asin : str
-        ASIN code
 
     Returns
     ----------
@@ -280,7 +296,7 @@ def get_stock_count(driver, asin):
     return stock_count
 
 
-def post_to_spreadsheet(auth, data):
+def post_to_spreadsheet(auth, stock_counts):
     """
     Posting data to spreadsheet
 
@@ -288,33 +304,20 @@ def post_to_spreadsheet(auth, data):
     ----------
     auth : gspread.authorize()
         authorization for operating spreadsheet
-    data : dict
-        data got from amazon
+    stock_counts : List
+        List of stock_count
     """
 
     sheet = auth.open_by_key(WORKBOOK_KEY).worksheet("シート1")
-    # 既存のデータを取得
-    existing_data = sheet.get_values()
     # 現在の日付を取得
     current_date = datetime.datetime.now().strftime("%Y/%m/%d")
-    # 列名を取得
-    header_row = sheet.row_values(1)
-    num_existing_columns = len(header_row)
-    # 新しい列を追加
-    new_column_index = num_existing_columns + 1
-    sheet.update_cell(1, new_column_index, current_date)
-    # 各データに対して処理
-    for asin, quantity in data.items():
-        row_exists = False
-        for row in existing_data:
-            if row[0] == asin:
-                row_exists = True
-                row_index = existing_data.index(row) + 1
-                sheet.update_cell(row_index, new_column_index, quantity)
-                break
-        if not row_exists:
-            new_row = [asin, ""] + [""] * (new_column_index - 2) + [quantity]
-            sheet.append_row(new_row)
+    # 4列目に空列を挿入
+    sheet.insert_cols([[]], col=4)
+    # 4列目に各商品に対応する在庫数を入力
+    quantities = [[current_date]]
+    for stock_count in stock_counts:
+        quantities.append([stock_count])
+    sheet.append_rows(quantities, table_range="D1", value_input_option='USER_ENTERED')
 
 
 if __name__ == "__main__":
@@ -325,21 +328,23 @@ if __name__ == "__main__":
     auth = google_auth()
     # ASIN / 出品者を取得
     print("ASIN / 出品者を取得します")
-    asin2target = get_asin2target(auth)
+    asins, targets = get_asins_and_targets(auth)
     # Amazon から在庫数を取得します
     print("Amazon から在庫数を取得します")
-    stock_count_dic = {}
+    stock_counts = []
     driver = init_driver()
-    for asin, target in asin2target.items():
+    # asins = ["B07M6KPJ9K", "B07M6KPJ9K"]
+    # targets = ["SATISストア", "MIBAストア（インボイス登録済）"]
+    for asin, target in zip(asins, targets):
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
-            stock_count_dic[asin] = get_stock_count(driver, asin)
+            stock_counts.append(get_stock_count(driver))
         else:
-            stock_count_dic[asin] = stock_count
+            stock_counts.append(stock_count)
     driver.quit()
     # スプレッドシートへ在庫数を入力
     print("スプレッドシートへ在庫数を入力します")
-    post_to_spreadsheet(auth, stock_count_dic)
+    post_to_spreadsheet(auth, stock_counts)
 
     end_time = datetime.datetime.now()
     print(f"処理が完了しました - {end_time.strftime('%H:%M')}")
