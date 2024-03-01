@@ -174,6 +174,13 @@ def add_to_cart(driver, asin, target):
 
         return stock_count
 
+    def close_tabs():
+        # 先頭タブを除きすべてのタブを閉じる
+        for handle in driver.window_handles[1:]:
+            driver.switch_to.window(handle)
+            driver.close()
+        driver.switch_to.window(driver.window_handles[0])
+
     retry_count = 0
     max_retries = 2
     is_success = False
@@ -201,10 +208,13 @@ def add_to_cart(driver, asin, target):
                 else:
                     print("販売元がターゲットでない")
                     stock_count = track_target()
+                    close_tabs()
 
             else:
                 print("販売元が表示されていない")
                 stock_count = track_target()
+                close_tabs()
+            return stock_count
 
         except Exception:
             if retry_count > max_retries:
@@ -212,19 +222,13 @@ def add_to_cart(driver, asin, target):
                     f"{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。"
                 )
                 stock_count = "error"
+                close_tabs()
                 break
             else:
                 retry_count += 1
                 print(
                     f"{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
-        finally:
-            # 先頭タブを除きすべてのタブを閉じる
-            for handle in driver.window_handles[1:]:
-                driver.switch_to.window(handle)
-                driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-            return stock_count
 
 
 def get_stock_count(driver):
