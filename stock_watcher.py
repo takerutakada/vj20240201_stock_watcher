@@ -9,9 +9,13 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
+from glob import glob
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
 # 実行環境
-# ACTION_ENV = "Local"
-ACTION_ENV = "GitHub Actions"
+ACTION_ENV = "Local"
+# ACTION_ENV = "GitHub Actions"
 # 設定ファイル保管場所
 SETTING_DIR = "settings"
 SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}"
@@ -134,6 +138,29 @@ def add_to_cart(driver, asin, target):
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
             print("パターン1")
+            # get width and height of the page
+            w = driver.execute_script("return document.body.scrollWidth;")
+            h = driver.execute_script("return document.body.scrollHeight;")
+            driver.save_screenshot("result.png")
+            # set window size
+            driver.set_window_size(w,h)
+            # PDF を探索
+            pdf_path = glob('result.png')[0]
+            # Google Drive 上のファイル
+            file_name = 'result.png'
+            # PDF をアップロード
+            # CAUTION: Google Drive 上のフォルダ権限を事前に変更しておく（フォルダ名右「︙」> 共有 > 共有 > 一般的なアクセス > リンクを知っている全員 > 編集者 > 完了）
+            file_metadata = {"name": file_name, "mimeType": "image/png", "parents": ["1EhJHpg0CWyFrmeSK0rtiNqDDH00OrXvh"]}
+            media = MediaFileUpload(pdf_path, mimetype="image/png",resumable=True )
+            scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/drive",
+            ]
+            credentials = ServiceAccountCredentials.from_json_keyfile_name(
+                f"{SETTING_DIR_PATH}/{JSON}", scope
+            )
+            auth = build("drive", "v3", credentials=credentials, cache_discovery=False)
+            auth.files().create(body=file_metadata, media_body=media, fields='id').execute()
             for seller_name_element in seller_name_elements:
                 print(seller_name_element.text)
             for seller_name_element in seller_name_elements:
@@ -191,7 +218,7 @@ def add_to_cart(driver, asin, target):
     max_retries = 2
     is_success = False
     while not is_success:
-        try:
+        # try:
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
             # URLにアクセス
@@ -222,19 +249,19 @@ def add_to_cart(driver, asin, target):
                 close_tabs()
             return stock_count
 
-        except Exception:
-            if retry_count > max_retries:
-                print(
-                    f"{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。"
-                )
-                stock_count = "error"
-                close_tabs()
-                break
-            else:
-                retry_count += 1
-                print(
-                    f"{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
-                )
+        # except Exception:
+        #     if retry_count > max_retries:
+        #         print(
+        #             f"{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。"
+        #         )
+        #         stock_count = "error"
+        #         close_tabs()
+        #         break
+        #     else:
+        #         retry_count += 1
+        #         print(
+        #             f"{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+        #         )
 
 
 def get_stock_count(driver):
