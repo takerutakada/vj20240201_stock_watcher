@@ -124,6 +124,7 @@ def update_address(driver):
     print("After Delete")
     for cookie in driver.get_cookies():
         print(cookie)
+    driver.get(url)
     screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
     update_address_txt.click()
