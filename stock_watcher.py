@@ -247,10 +247,11 @@ def add_to_cart(driver, asin, target, first_loop):
         try:
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
-            if first_loop:
-                update_address(driver, url)
-            else:
-                driver.get(url)
+            # if first_loop:
+            #     update_address(driver, url)
+            # else:
+            #     driver.get(url)
+            driver.get(url)
             # 販売元が表示されているか判定
             seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
             # 販売元が表示されている
