@@ -14,8 +14,8 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 # 実行環境
-# ACTION_ENV = "Local"
-ACTION_ENV = "GitHub Actions"
+ACTION_ENV = "Local"
+# ACTION_ENV = "GitHub Actions"
 # 設定ファイル保管場所
 SETTING_DIR = "settings"
 SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}"
@@ -114,16 +114,41 @@ def update_address(driver):
 
     url = "https://www.amazon.co.jp/"
     driver.get(url)
+    screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
     update_address_txt.click()
+    screenshot_to_drive(driver, "test2.png")
     postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
     postcode_0_input.send_keys("100")
     postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
     postcode_1_input.send_keys("0001")
+    screenshot_to_drive(driver, "test3.png")
     save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
     save_btn.click()
+    screenshot_to_drive(driver, "test4.png")
     time.sleep(5)
 
+def screenshot_to_drive(driver, file_name):
+    # get width and height of the page
+    w = driver.execute_script("return document.body.scrollWidth;")
+    h = driver.execute_script("return document.body.scrollHeight;")
+    # set window size
+    driver.set_window_size(w,h)
+    driver.save_screenshot(file_name)
+    file_path = glob(file_name)[0]
+    # PDF をアップロード
+    # CAUTION: Google Drive 上のフォルダ権限を事前に変更しておく（フォルダ名右「︙」> 共有 > 共有 > 一般的なアクセス > リンクを知っている全員 > 編集者 > 完了）
+    file_metadata = {"name": file_name, "mimeType": "image/png", "parents": ["1EhJHpg0CWyFrmeSK0rtiNqDDH00OrXvh"]}
+    media = MediaFileUpload(file_path, mimetype="image/png", resumable=True)
+    scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive",
+    ]
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        f"{SETTING_DIR_PATH}/{JSON}", scope
+    )
+    auth = build("drive", "v3", credentials=credentials, cache_discovery=False)
+    auth.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
 def add_to_cart(driver, asin, target):
     """
@@ -161,28 +186,7 @@ def add_to_cart(driver, asin, target):
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
             print("パターン1")
-            # get width and height of the page
-            w = driver.execute_script("return document.body.scrollWidth;")
-            h = driver.execute_script("return document.body.scrollHeight;")
-            # set window size
-            driver.set_window_size(w,h)
-            driver.save_screenshot("result.png")
-            pdf_path = glob('result.png')[0]
-            # Google Drive 上のファイル
-            file_name = 'result.png'
-            # PDF をアップロード
-            # CAUTION: Google Drive 上のフォルダ権限を事前に変更しておく（フォルダ名右「︙」> 共有 > 共有 > 一般的なアクセス > リンクを知っている全員 > 編集者 > 完了）
-            file_metadata = {"name": file_name, "mimeType": "image/png", "parents": ["1EhJHpg0CWyFrmeSK0rtiNqDDH00OrXvh"]}
-            media = MediaFileUpload(pdf_path, mimetype="image/png",resumable=True )
-            scope = [
-            "https://spreadsheets.google.com/feeds",
-            "https://www.googleapis.com/auth/drive",
-            ]
-            credentials = ServiceAccountCredentials.from_json_keyfile_name(
-                f"{SETTING_DIR_PATH}/{JSON}", scope
-            )
-            auth = build("drive", "v3", credentials=credentials, cache_discovery=False)
-            auth.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            screenshot_to_drive(driver, "result.png")
             for seller_name_element in seller_name_elements:
                 print(seller_name_element.text)
             for seller_name_element in seller_name_elements:
