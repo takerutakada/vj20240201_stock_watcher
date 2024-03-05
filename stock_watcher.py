@@ -141,10 +141,9 @@ def add_to_cart(driver, asin, target):
             # get width and height of the page
             w = driver.execute_script("return document.body.scrollWidth;")
             h = driver.execute_script("return document.body.scrollHeight;")
-            driver.save_screenshot("result.png")
             # set window size
             driver.set_window_size(w,h)
-            # PDF を探索
+            driver.save_screenshot("result.png")
             pdf_path = glob('result.png')[0]
             # Google Drive 上のファイル
             file_name = 'result.png'
