@@ -102,6 +102,29 @@ def init_driver():
     return driver
 
 
+def update_address(driver):
+    """
+    update address (only Github Actions)
+
+    Parameters
+    ----------
+    driver : WebDriver
+        Initialized WebDriver
+    """
+
+    url = "https://www.amazon.co.jp/"
+    driver.get(url)
+    update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
+    update_address_txt.click()
+    postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
+    postcode_0_input.send_keys("100")
+    postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
+    postcode_1_input.send_keys("0001")
+    save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
+    save_btn.click()
+    time.sleep(5)
+
+
 def add_to_cart(driver, asin, target):
     """
     add item to cart
@@ -369,8 +392,8 @@ if __name__ == "__main__":
     print("Amazon から在庫数を取得します")
     stock_counts = []
     driver = init_driver()
-    # asins = ["B07M6KPJ9K", "B07M6KPJ9K"]
-    # targets = ["SATISストア", "MIBAストア（インボイス登録済）"]
+    # お届け先を更新
+    update_address(driver)
     for asin, target in zip(asins, targets):
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
