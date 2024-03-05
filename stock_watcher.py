@@ -112,8 +112,18 @@ def update_address(driver):
         Initialized WebDriver
     """
 
-    url = "https://www.amazon.co.jp/gp/help/customer/display.html?nodeId=201909000"
+    url = "https://www.amazon.co.jp/"
     driver.get(url)
+    #現在のセッションでWebページが保持する全てのクッキーを表示
+    print("Before Delete")
+    for cookie in driver.get_cookies():
+        print(cookie)
+    #全てのクッキーを削除
+    driver.delete_all_cookies()
+    #全てのクッキー削除が反映されているか確認
+    print("After Delete")
+    for cookie in driver.get_cookies():
+        print(cookie)
     screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
     update_address_txt.click()
