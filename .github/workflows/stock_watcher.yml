@@ -3,8 +3,8 @@ on:
   # push 時に実行（テスト用）
   # push:
   # JST 06:00 に実行←要確認
-#   schedule:
-#    - cron: '0 21 * * *'
+  schedule:
+    - cron: '0 21 * * *'
   # 手動実行
   workflow_dispatch:
 
