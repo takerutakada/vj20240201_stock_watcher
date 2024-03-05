@@ -102,7 +102,7 @@ def init_driver():
     return driver
 
 
-def update_address(driver, url):
+def update_address(driver):
     """
     update address (only Github Actions)
 
@@ -112,8 +112,8 @@ def update_address(driver, url):
         Initialized WebDriver
     """
 
+    url = "https://www.amazon.co.jp/"
     driver.get(url)
-    #現在のセッションでWebページが保持する全てのクッキーを表示
     screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
     update_address_txt.click()
@@ -150,7 +150,7 @@ def screenshot_to_drive(driver, file_name):
     auth = build("drive", "v3", credentials=credentials, cache_discovery=False)
     auth.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
-def add_to_cart(driver, asin, target, first_loop):
+def add_to_cart(driver, asin, target):
     """
     add item to cart
 
@@ -247,11 +247,9 @@ def add_to_cart(driver, asin, target, first_loop):
         try:
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
-            # if first_loop:
-            #     update_address(driver, url)
-            # else:
-            #     driver.get(url)
+            # URLにアクセス
             driver.get(url)
+
             # 販売元が表示されているか判定
             seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
             # 販売元が表示されている
@@ -398,14 +396,14 @@ if __name__ == "__main__":
     print("Amazon から在庫数を取得します")
     stock_counts = []
     driver = init_driver()
-    first_loop = True
+    # お届け先を更新
+    update_address(driver)
     for asin, target in zip(asins, targets):
-        stock_count = add_to_cart(driver, asin, target, first_loop)
+        stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
             stock_counts.append(get_stock_count(driver))
         else:
             stock_counts.append(stock_count)
-        first_loop = False
     driver.quit()
     # スプレッドシートへ在庫数を入力
     print("スプレッドシートへ在庫数を入力します")
