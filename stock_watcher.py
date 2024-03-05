@@ -102,7 +102,7 @@ def init_driver():
     return driver
 
 
-def update_address(driver, asin):
+def update_address(driver):
     """
     update address (only Github Actions)
 
@@ -112,7 +112,7 @@ def update_address(driver, asin):
         Initialized WebDriver
     """
 
-    url = f"https://www.amazon.co.jp/dp/{asin}"
+    url = "https://www.amazon.co.jp/gp/help/customer/display.html?nodeId=201909000"
     driver.get(url)
     screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
@@ -249,7 +249,7 @@ def add_to_cart(driver, asin, target):
             url = f"https://www.amazon.co.jp/dp/{asin}"
             # URLにアクセス
             driver.get(url)
-            screenshot_to_drive(driver, f"{asin}.png")
+
             # 販売元が表示されているか判定
             seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
             # 販売元が表示されている
@@ -397,7 +397,7 @@ if __name__ == "__main__":
     stock_counts = []
     driver = init_driver()
     # お届け先を更新
-    # update_address(driver, asins[0])
+    update_address(driver)
     for asin, target in zip(asins, targets):
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
