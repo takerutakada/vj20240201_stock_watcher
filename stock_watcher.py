@@ -14,8 +14,8 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 # 実行環境
-ACTION_ENV = "Local"
-# ACTION_ENV = "GitHub Actions"
+# ACTION_ENV = "Local"
+ACTION_ENV = "GitHub Actions"
 # 設定ファイル保管場所
 SETTING_DIR = "settings"
 SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}"
@@ -218,7 +218,7 @@ def add_to_cart(driver, asin, target):
     max_retries = 2
     is_success = False
     while not is_success:
-        # try:
+        try:
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
             # URLにアクセス
@@ -249,19 +249,19 @@ def add_to_cart(driver, asin, target):
                 close_tabs()
             return stock_count
 
-        # except Exception:
-        #     if retry_count > max_retries:
-        #         print(
-        #             f"{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。"
-        #         )
-        #         stock_count = "error"
-        #         close_tabs()
-        #         break
-        #     else:
-        #         retry_count += 1
-        #         print(
-        #             f"{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
-        #         )
+        except Exception:
+            if retry_count > max_retries:
+                print(
+                    f"{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。"
+                )
+                stock_count = "error"
+                close_tabs()
+                break
+            else:
+                retry_count += 1
+                print(
+                    f"{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                )
 
 
 def get_stock_count(driver):
