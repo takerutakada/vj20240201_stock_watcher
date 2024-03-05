@@ -112,32 +112,46 @@ def update_address(driver):
         Initialized WebDriver
     """
 
-    url = "https://www.amazon.co.jp/"
-    driver.get(url)
-    #現在のセッションでWebページが保持する全てのクッキーを表示
-    print("Before Delete")
-    for cookie in driver.get_cookies():
-        print(cookie)
-    #全てのクッキーを削除
-    driver.delete_all_cookies()
-    driver.get(url)
-    #全てのクッキー削除が反映されているか確認
-    print("After Delete")
-    for cookie in driver.get_cookies():
-        print(cookie)
-    screenshot_to_drive(driver, "test1.png")
-    update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
-    update_address_txt.click()
-    screenshot_to_drive(driver, "test2.png")
-    postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
-    postcode_0_input.send_keys("100")
-    postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
-    postcode_1_input.send_keys("0001")
-    screenshot_to_drive(driver, "test3.png")
-    save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
-    save_btn.click()
-    screenshot_to_drive(driver, "test4.png")
-    time.sleep(5)
+    retry_count = 0
+    max_retries = 2
+    is_success = False
+    while not is_success:
+        try:
+            url = "https://www.amazon.co.jp/"
+            driver.get(url)
+            #現在のセッションでWebページが保持する全てのクッキーを表示
+            print("Before Delete")
+            for cookie in driver.get_cookies():
+                print(cookie)
+            #全てのクッキーを削除
+            driver.delete_all_cookies()
+            #全てのクッキー削除が反映されているか確認
+            print("After Delete")
+            for cookie in driver.get_cookies():
+                print(cookie)
+            screenshot_to_drive(driver, f"test1_{retry_count}.png")
+            update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
+            update_address_txt.click()
+            screenshot_to_drive(driver, f"test2_{retry_count}.png")
+            postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
+            postcode_0_input.send_keys("100")
+            postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
+            postcode_1_input.send_keys("0001")
+            screenshot_to_drive(driver, f"test3_{retry_count}.png")
+            save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
+            save_btn.click()
+            screenshot_to_drive(driver, "test4.png")
+            time.sleep(5)
+        except Exception:
+            if retry_count > max_retries:
+                print("お届け先の更新失敗")
+                sys.exit(1)
+            else:
+                retry_count += 1
+                print(
+                    f"お届け先の更新に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                )
+
 
 def screenshot_to_drive(driver, file_name):
     # get width and height of the page
