@@ -34,7 +34,7 @@ jobs:
           json: ${{ secrets.JSON_TEST }}
           # json: ${{ secrets.JSON }}
           dir: "settings/"
-      - name: Create service_account.json
+      - name: Create cookie.json
         id: create-cookie_json
         uses: jsdaniell/create-json@v1.2.2
         with:
