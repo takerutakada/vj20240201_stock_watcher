@@ -4,6 +4,7 @@ import datetime
 import gspread
 import os
 import sys
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -26,11 +27,14 @@ if ACTION_ENV == "Local":
     # config.ini の読み込み
     ini_file = configparser.ConfigParser()
     ini_file.read(f"{SETTING_DIR_PATH}/config.ini", "utf-8-sig")
+    # cookie.json
+    COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
     # service_account.json
     JSON = ini_file.get(MODE, "JSON")
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
 elif ACTION_ENV == "GitHub Actions":
+    COOKIE_JSON = "cookie.json"
     JSON = "service_account.json"
     if MODE == "TEST":
         # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
@@ -93,11 +97,11 @@ def init_driver():
     }
     options.add_experimental_option("prefs", prefs)
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     driver = webdriver.Chrome(options=options)
     driver.implicitly_wait(10)
-    # driver.set_window_position(0, 0)  # ブラウザの位置を左上に固定
-    # driver.maximize_window()
+    driver.set_window_position(0, 0)  # ブラウザの位置を左上に固定
+    driver.maximize_window()
 
     return driver
 
@@ -112,7 +116,15 @@ def update_address(driver):
         Initialized WebDriver
     """
 
+    # クッキー取得
     url = "https://www.amazon.co.jp/"
+    driver.get(url)
+    json_open = open(COOKIE_JSON, 'r')
+    cookies = json.load(json_open)
+    for cookie in cookies:
+        tmp = {"name": cookie["name"], "value": cookie["value"]}
+        driver.add_cookie(tmp)
+    # 2回アクセスする必要がある
     driver.get(url)
     screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")

@@ -26,13 +26,20 @@ jobs:
           sudo apt-get install google-chrome-stable
       - name: Install Package
         run: pip install -r requirements.txt
-      - name: Create Json
-        id: create-json
+      - name: Create service_account.json
+        id: create-service_account_json
         uses: jsdaniell/create-json@v1.2.2
         with:
           name: "service_account.json"
           json: ${{ secrets.JSON_TEST }}
-        #   json: ${{ secrets.JSON }}
+          # json: ${{ secrets.JSON }}
+          dir: "settings/"
+      - name: Create service_account.json
+        id: create-cookie_json
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "cookie.json"
+          json: ${{ secrets.COOKIE_JSON }}
           dir: "settings/"
       - name: Run stock_watcher
         env:
