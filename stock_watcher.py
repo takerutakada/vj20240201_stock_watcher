@@ -22,19 +22,18 @@ SETTING_DIR = "settings"
 SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}"
 # モード（TEST / PROD）
 MODE = "TEST"
+# cookie.json
+COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
 
 if ACTION_ENV == "Local":
     # config.ini の読み込み
     ini_file = configparser.ConfigParser()
     ini_file.read(f"{SETTING_DIR_PATH}/config.ini", "utf-8-sig")
-    # cookie.json
-    COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
     # service_account.json
     JSON = ini_file.get(MODE, "JSON")
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
 elif ACTION_ENV == "GitHub Actions":
-    COOKIE_JSON = "cookie.json"
     JSON = "service_account.json"
     if MODE == "TEST":
         # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
