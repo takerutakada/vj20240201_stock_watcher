@@ -23,6 +23,8 @@ SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DI
 MODE = "TEST"
 # cookie.json
 COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
+# 最大リトライ回数
+MAX_RETRIES = 5
 
 if ACTION_ENV == "Local":
     # config.ini の読み込み
@@ -135,7 +137,6 @@ def update_address(driver):
     """
 
     retry_count = 0
-    max_retries = 2
     while True:
         try:
             url = "https://www.amazon.co.jp/"
@@ -156,7 +157,7 @@ def update_address(driver):
             break
         except Exception:
             driver.quit()
-            if retry_count < max_retries:
+            if retry_count < MAX_RETRIES:
                 retry_count += 1
                 print(
                     f"- 住所の更新に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
@@ -312,7 +313,6 @@ def add_to_cart(driver, asin, target):
         driver.switch_to.window(driver.window_handles[0])
 
     retry_count = 0
-    max_retries = 2
     while True:
         try:
             print(f"ASIN: {asin} / target: {target}")
@@ -347,7 +347,7 @@ def add_to_cart(driver, asin, target):
             driver.quit()
             driver = init_driver()
             update_address(driver)
-            if retry_count < max_retries:
+            if retry_count < MAX_RETRIES:
                 retry_count += 1
                 print(
                     f"- データ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
@@ -374,7 +374,6 @@ def get_stock_count(driver):
     """
 
     retry_count = 0
-    max_retries = 2
     while True:
         try:
             # カートに移動
@@ -405,7 +404,7 @@ def get_stock_count(driver):
             driver.quit()
             driver = init_driver()
             update_address(driver)
-            if retry_count < max_retries:
+            if retry_count < MAX_RETRIES:
                 retry_count += 1
                 print(
                     f"- データ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
