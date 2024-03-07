@@ -134,22 +134,38 @@ def update_address(driver):
         Initialized WebDriver
     """
 
-    url = "https://www.amazon.co.jp/"
-    set_cookie(driver, url)
-    screenshot_to_drive(driver, "test1.png")
-    update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
-    update_address_txt.click()
-    screenshot_to_drive(driver, "test2.png")
-    postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
-    postcode_0_input.send_keys("100")
-    postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
-    postcode_1_input.send_keys("0001")
-    screenshot_to_drive(driver, "test3.png")
-    save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
-    save_btn.click()
-    screenshot_to_drive(driver, "test4.png")
-    time.sleep(5)
-
+    retry_count = 0
+    max_retries = 2
+    while True:
+        try:
+            url = "https://www.amazon.co.jp/"
+            set_cookie(driver, url)
+            screenshot_to_drive(driver, "test1.png")
+            update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
+            update_address_txt.click()
+            screenshot_to_drive(driver, "test2.png")
+            postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
+            postcode_0_input.send_keys("100")
+            postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
+            postcode_1_input.send_keys("0001")
+            screenshot_to_drive(driver, "test3.png")
+            save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
+            save_btn.click()
+            screenshot_to_drive(driver, "test4.png")
+            time.sleep(5)
+            break
+        except Exception:
+            driver.quit()
+            if retry_count < max_retries:
+                retry_count += 1
+                print(
+                    f"- 住所の更新に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                )
+            else:
+                print(
+                    "- 住所更新のリトライ上限に達しました。処理を終了します。"
+                )
+                sys.exit(1)
 
 def screenshot_to_drive(driver, file_name):
     # get width and height of the page
@@ -337,7 +353,7 @@ def add_to_cart(driver, asin, target):
                 )
             else:
                 print("- データ取得のリトライ上限に達しました。次の商品に移ります。")
-                stock_counts.append("error")
+                stock_count = "error"
                 return stock_count
 
 
@@ -397,7 +413,7 @@ def get_stock_count(driver):
                 print(
                     "- データ取得のリトライ上限に達しました。次の商品に移ります。"
                 )
-                stock_counts.append("error")
+                stock_count = "error"
                 return stock_count
 
 def post_to_spreadsheet(auth, stock_counts):
@@ -433,31 +449,12 @@ if __name__ == "__main__":
     # ASIN / 出品者を取得
     print("ASIN / 出品者を取得します")
     asins, targets = get_asins_and_targets(auth)
-    # お届け先を更新
-    print("届け先住所を日本に修正します")
-    retry_count = 0
-    max_retries = 2
-    while True:
-        try:
-            driver = init_driver()
-            update_address(driver)
-            break
-        except Exception:
-            driver.quit()
-            if retry_count < max_retries:
-                retry_count += 1
-                print(
-                    f"- 住所の更新に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
-                )
-            else:
-                print(
-                    "- 住所更新のリトライ上限に達しました。処理を終了します。"
-                )
-                sys.exit(1)
+    driver = init_driver()
     # Amazon から在庫数を取得
     print("Amazon から在庫数を取得します")
     stock_counts = []
     for asin, target in zip(asins, targets):
+        update_address(driver)
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
             stock_counts.append(get_stock_count(driver))
