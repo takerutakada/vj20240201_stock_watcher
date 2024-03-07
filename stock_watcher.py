@@ -161,6 +161,7 @@ def update_address(driver):
                 print(
                     f"- 住所の更新に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
+                driver = init_driver()
             else:
                 print(
                     "- 住所更新のリトライ上限に達しました。処理を終了します。"
