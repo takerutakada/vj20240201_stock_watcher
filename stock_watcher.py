@@ -9,7 +9,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-
 from glob import glob
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -105,6 +104,26 @@ def init_driver():
     return driver
 
 
+def set_cookie(driver, url):
+    """
+    Parameters
+    ----------
+    driver : WebDriver
+        Initialized WebDriver
+    url : str
+        access URL
+    """
+
+    driver.get(url)
+    json_open = open(COOKIE_JSON, "r")
+    cookies = json.load(json_open)
+    for cookie in cookies:
+        tmp = {"name": cookie["name"], "value": cookie["value"]}
+        driver.add_cookie(tmp)
+    # 2回アクセスする必要がある
+    driver.get(url)
+
+
 def update_address(driver):
     """
     update address (only Github Actions)
@@ -115,16 +134,8 @@ def update_address(driver):
         Initialized WebDriver
     """
 
-    # クッキー取得
     url = "https://www.amazon.co.jp/"
-    driver.get(url)
-    json_open = open(COOKIE_JSON, 'r')
-    cookies = json.load(json_open)
-    for cookie in cookies:
-        tmp = {"name": cookie["name"], "value": cookie["value"]}
-        driver.add_cookie(tmp)
-    # 2回アクセスする必要がある
-    driver.get(url)
+    set_cookie(driver, url)
     screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
     update_address_txt.click()
@@ -139,27 +150,33 @@ def update_address(driver):
     screenshot_to_drive(driver, "test4.png")
     time.sleep(5)
 
+
 def screenshot_to_drive(driver, file_name):
     # get width and height of the page
     w = driver.execute_script("return document.body.scrollWidth;")
     h = driver.execute_script("return document.body.scrollHeight;")
     # set window size
-    driver.set_window_size(w,h)
+    driver.set_window_size(w, h)
     driver.save_screenshot(file_name)
     file_path = glob(file_name)[0]
     # PDF をアップロード
     # CAUTION: Google Drive 上のフォルダ権限を事前に変更しておく（フォルダ名右「︙」> 共有 > 共有 > 一般的なアクセス > リンクを知っている全員 > 編集者 > 完了）
-    file_metadata = {"name": file_name, "mimeType": "image/png", "parents": ["1EhJHpg0CWyFrmeSK0rtiNqDDH00OrXvh"]}
+    file_metadata = {
+        "name": file_name,
+        "mimeType": "image/png",
+        "parents": ["1EhJHpg0CWyFrmeSK0rtiNqDDH00OrXvh"],
+    }
     media = MediaFileUpload(file_path, mimetype="image/png", resumable=True)
     scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive",
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive",
     ]
     credentials = ServiceAccountCredentials.from_json_keyfile_name(
         f"{SETTING_DIR_PATH}/{JSON}", scope
     )
     auth = build("drive", "v3", credentials=credentials, cache_discovery=False)
-    auth.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    auth.files().create(body=file_metadata, media_body=media, fields="id").execute()
+
 
 def add_to_cart(driver, asin, target):
     """
@@ -186,7 +203,9 @@ def add_to_cart(driver, asin, target):
         olp_link_widget = driver.find_elements(
             By.XPATH, "//*[@id='olpLinkWidget_feature_div']/div[2]"
         )
-        buybox_see_all_buying_choices = driver.find_elements(By.XPATH, "//*[@id='buybox-see-all-buying-choices']/span/a")
+        buybox_see_all_buying_choices = driver.find_elements(
+            By.XPATH, "//*[@id='buybox-see-all-buying-choices']/span/a"
+        )
         # 商品が在庫切れ
         if len(out_of_stock):
             print("- 在庫切れです")
@@ -197,7 +216,7 @@ def add_to_cart(driver, asin, target):
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
             print("パターン1")
-            screenshot_to_drive(driver, "result.png")
+            screenshot_to_drive(driver, f"result_{asin}.png")
             for seller_name_element in seller_name_elements:
                 print(seller_name_element.text)
             for seller_name_element in seller_name_elements:
@@ -207,7 +226,17 @@ def add_to_cart(driver, asin, target):
                     driver.get(add_to_cart_url)
                     # 「カートに入れる」ボタンをクリック（ElementClickInterceptedException を突破できないので力技）
                     action = webdriver.ActionChains(driver)
-                    keys_to_send = [Keys.TAB, Keys.ENTER, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.ENTER]
+                    keys_to_send = [
+                        Keys.TAB,
+                        Keys.ENTER,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.ENTER,
+                    ]
                     for key in keys_to_send:
                         action.send_keys(key).perform()
                     time.sleep(10)
@@ -223,6 +252,7 @@ def add_to_cart(driver, asin, target):
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
             print("パターン2")
+            screenshot_to_drive(driver, f"result_{asin}.png")
             for seller_name_element in seller_name_elements:
                 print(seller_name_element.text)
             for seller_name_element in seller_name_elements:
@@ -232,7 +262,17 @@ def add_to_cart(driver, asin, target):
                     driver.get(add_to_cart_url)
                     # 「カートに入れる」ボタンをクリック（ElementClickInterceptedException を突破できないので力技）
                     action = webdriver.ActionChains(driver)
-                    keys_to_send = [Keys.TAB, Keys.ENTER, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.ENTER]
+                    keys_to_send = [
+                        Keys.TAB,
+                        Keys.ENTER,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.TAB,
+                        Keys.ENTER,
+                    ]
                     for key in keys_to_send:
                         action.send_keys(key).perform()
                     time.sleep(10)
@@ -241,6 +281,9 @@ def add_to_cart(driver, asin, target):
             else:
                 print(f"- {target} は出品していません")
                 stock_count = 0
+        else:
+            print("情報を取得できません")
+            stock_count = "error"
 
         return stock_count
 
@@ -253,13 +296,11 @@ def add_to_cart(driver, asin, target):
 
     retry_count = 0
     max_retries = 2
-    is_success = False
-    while not is_success:
+    while True:
         try:
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
-            # URLにアクセス
-            driver.get(url)
+            set_cookie(driver, url)
 
             # 販売元が表示されているか判定
             seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
@@ -285,20 +326,19 @@ def add_to_cart(driver, asin, target):
                 stock_count = track_target()
                 close_tabs()
             return stock_count
-
         except Exception:
-            if retry_count > max_retries:
-                print(
-                    f"{asin} のデータ取得のリトライ上限に達しました。次の商品に移ります。"
-                )
-                stock_count = "error"
-                close_tabs()
-                break
-            else:
+            driver.quit()
+            driver = init_driver()
+            update_address(driver)
+            if retry_count < max_retries:
                 retry_count += 1
                 print(
-                    f"{asin} のデータ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                    f"- データ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
+            else:
+                print("- データ取得のリトライ上限に達しました。次の商品に移ります。")
+                stock_counts.append("error")
+                return stock_count
 
 
 def get_stock_count(driver):
@@ -318,23 +358,18 @@ def get_stock_count(driver):
 
     retry_count = 0
     max_retries = 2
-    is_success = False
-    while not is_success:
+    while True:
         try:
             # カートに移動
             driver.get("https://www.amazon.co.jp/gp/cart/view.html")
             # 数量選択ページに遷移
-            quantity_button = driver.find_element(
-                By.CSS_SELECTOR, "#a-autoid-0-announce"
-            )
+            quantity_button = driver.find_element(By.CSS_SELECTOR, "#a-autoid-0-announce")
             quantity_button.click()
             # 10+を選択
             while "product" in driver.current_url:
                 print("キャンペーン広告をクリックしました。ブラウザバックします")
                 driver.back()
-            ten_plus_option = driver.find_element(
-                By.XPATH, "//a[contains(text(),'10+')]"
-            )
+            ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
             ten_plus_option.click()
             # 数量入力
             quantity_input = driver.find_element(By.NAME, "quantityBox")
@@ -348,27 +383,22 @@ def get_stock_count(driver):
             available_quantity = quantity_input.get_attribute("value")
             print(f"- 在庫数: {available_quantity}")
             stock_count = available_quantity
-            is_success = True
-
+            return stock_count
         except Exception:
-            if retry_count > max_retries:
-                print("- データ取得のリトライ上限に達しました。次の商品に移ります。")
-                stock_count = "error"
-                break
-            else:
+            driver.quit()
+            driver = init_driver()
+            update_address(driver)
+            if retry_count < max_retries:
                 retry_count += 1
                 print(
                     f"- データ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
-        finally:
-            # 先頭タブを除きすべてのタブを閉じる
-            for handle in driver.window_handles[1:]:
-                driver.switch_to.window(handle)
-                driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-    # WebDriverを閉じる
-    return stock_count
-
+            else:
+                print(
+                    "- データ取得のリトライ上限に達しました。次の商品に移ります。"
+                )
+                stock_counts.append("error")
+                return stock_count
 
 def post_to_spreadsheet(auth, stock_counts):
     """
@@ -391,7 +421,7 @@ def post_to_spreadsheet(auth, stock_counts):
     quantities = [[current_date]]
     for stock_count in stock_counts:
         quantities.append([stock_count])
-    sheet.append_rows(quantities, table_range="D1", value_input_option='USER_ENTERED')
+    sheet.append_rows(quantities, table_range="D1", value_input_option="USER_ENTERED")
 
 
 if __name__ == "__main__":
@@ -403,12 +433,30 @@ if __name__ == "__main__":
     # ASIN / 出品者を取得
     print("ASIN / 出品者を取得します")
     asins, targets = get_asins_and_targets(auth)
-    # Amazon から在庫数を取得します
+    # お届け先を更新
+    print("届け先住所を日本に修正します")
+    retry_count = 0
+    max_retries = 2
+    while True:
+        try:
+            driver = init_driver()
+            update_address(driver)
+            break
+        except Exception:
+            driver.quit()
+            if retry_count < max_retries:
+                retry_count += 1
+                print(
+                    f"- 住所の更新に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                )
+            else:
+                print(
+                    "- 住所更新のリトライ上限に達しました。処理を終了します。"
+                )
+                sys.exit(1)
+    # Amazon から在庫数を取得
     print("Amazon から在庫数を取得します")
     stock_counts = []
-    driver = init_driver()
-    # お届け先を更新
-    update_address(driver)
     for asin, target in zip(asins, targets):
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
