@@ -24,7 +24,7 @@ MODE = "TEST"
 # cookie.json
 COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
 # 最大リトライ回数
-MAX_RETRIES = 5
+MAX_RETRIES = 3
 
 if ACTION_ENV == "Local":
     # config.ini の読み込み
@@ -142,15 +142,23 @@ def update_address(driver):
             url = "https://www.amazon.co.jp/"
             set_cookie(driver, url)
             screenshot_to_drive(driver, "test1.png")
-            update_address_txt = driver.find_element(By.XPATH, "//*[@id='glow-ingress-line2']")
+            update_address_txt = driver.find_element(
+                By.XPATH, "//*[@id='glow-ingress-line2']"
+            )
             update_address_txt.click()
             screenshot_to_drive(driver, "test2.png")
-            postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
+            postcode_0_input = driver.find_element(
+                By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
+            )
             postcode_0_input.send_keys("100")
-            postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
+            postcode_1_input = driver.find_element(
+                By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
+            )
             postcode_1_input.send_keys("0001")
             screenshot_to_drive(driver, "test3.png")
-            save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
+            save_btn = driver.find_element(
+                By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
+            )
             save_btn.click()
             screenshot_to_drive(driver, "test4.png")
             time.sleep(5)
@@ -160,14 +168,13 @@ def update_address(driver):
             if retry_count < MAX_RETRIES:
                 retry_count += 1
                 print(
-                    f"- 住所の更新に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                    f"- update_address: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
                 driver = init_driver()
             else:
-                print(
-                    "- 住所更新のリトライ上限に達しました。処理を終了します。"
-                )
+                print("- update_address: リトライ上限に達しました。処理を終了します。")
                 sys.exit(1)
+
 
 def screenshot_to_drive(driver, file_name):
     # get width and height of the page
@@ -216,7 +223,6 @@ def add_to_cart(driver, asin, target):
     """
 
     def track_target():
-
         out_of_stock = driver.find_elements(By.ID, "outOfStock")
         olp_link_widget = driver.find_elements(
             By.XPATH, "//*[@id='olpLinkWidget_feature_div']/div[2]"
@@ -350,10 +356,10 @@ def add_to_cart(driver, asin, target):
             if retry_count < MAX_RETRIES:
                 retry_count += 1
                 print(
-                    f"- データ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                    f"- add_to_cart: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
             else:
-                print("- データ取得のリトライ上限に達しました。次の商品に移ります。")
+                print("- add_to_cart: リトライ上限に達しました。次の商品に移ります。")
                 stock_count = "error"
                 return stock_count
 
@@ -379,13 +385,17 @@ def get_stock_count(driver):
             # カートに移動
             driver.get("https://www.amazon.co.jp/gp/cart/view.html")
             # 数量選択ページに遷移
-            quantity_button = driver.find_element(By.CSS_SELECTOR, "#a-autoid-0-announce")
+            quantity_button = driver.find_element(
+                By.CSS_SELECTOR, "#a-autoid-0-announce"
+            )
             quantity_button.click()
             # 10+を選択
             while "product" in driver.current_url:
                 print("キャンペーン広告をクリックしました。ブラウザバックします")
                 driver.back()
-            ten_plus_option = driver.find_element(By.XPATH, "//a[contains(text(),'10+')]")
+            ten_plus_option = driver.find_element(
+                By.XPATH, "//a[contains(text(),'10+')]"
+            )
             ten_plus_option.click()
             # 数量入力
             quantity_input = driver.find_element(By.NAME, "quantityBox")
@@ -407,14 +417,15 @@ def get_stock_count(driver):
             if retry_count < MAX_RETRIES:
                 retry_count += 1
                 print(
-                    f"- データ取得に失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                    f"- get_stock_count: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
             else:
                 print(
-                    "- データ取得のリトライ上限に達しました。次の商品に移ります。"
+                    "- get_stock_count: リトライ上限に達しました。次の商品に移ります。"
                 )
                 stock_count = "error"
                 return stock_count
+
 
 def post_to_spreadsheet(auth, stock_counts):
     """
@@ -441,7 +452,6 @@ def post_to_spreadsheet(auth, stock_counts):
 
 
 if __name__ == "__main__":
-
     start_time = datetime.datetime.now()
     print(f"処理を開始します - {start_time.strftime('%H:%M')}")
     # WebDriver の初期化
