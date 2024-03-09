@@ -364,7 +364,7 @@ def add_to_cart(driver, asin, target):
                 return stock_count
 
 
-def get_stock_count(driver):
+def get_stock_count(driver, asin, target):
     """
     Get stock count from amazon
 
@@ -372,6 +372,10 @@ def get_stock_count(driver):
     ----------
     driver : WebDriver
         Initialized WebDriver
+    asin : str
+        ASIN code
+    target : str
+        Seller name
 
     Returns
     ----------
@@ -411,14 +415,15 @@ def get_stock_count(driver):
             stock_count = available_quantity
             return stock_count
         except Exception:
-            driver.quit()
-            driver = init_driver()
-            update_address(driver)
             if retry_count < MAX_RETRIES:
                 retry_count += 1
                 print(
                     f"- get_stock_count: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
                 )
+                driver.quit()
+                driver = init_driver()
+                update_address(driver)
+                add_to_cart(driver, asin, target)
             else:
                 print(
                     "- get_stock_count: リトライ上限に達しました。次の商品に移ります。"
@@ -467,7 +472,7 @@ if __name__ == "__main__":
         update_address(driver)
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
-            stock_counts.append(get_stock_count(driver))
+            stock_counts.append(get_stock_count(driver, asin, target))
         else:
             stock_counts.append(stock_count)
     driver.quit()
