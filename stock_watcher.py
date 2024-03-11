@@ -140,13 +140,12 @@ def update_address(driver):
     while True:
         try:
             url = "https://www.amazon.co.jp/"
-            set_cookie(driver, url)
-            screenshot_to_drive(driver, "test1.png")
+            driver.get(url)
+            # set_cookie(driver, url)
             update_address_txt = driver.find_element(
                 By.XPATH, "//*[@id='glow-ingress-line2']"
             )
             update_address_txt.click()
-            screenshot_to_drive(driver, "test2.png")
             postcode_0_input = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
             )
@@ -155,12 +154,10 @@ def update_address(driver):
                 By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
             )
             postcode_1_input.send_keys("0001")
-            screenshot_to_drive(driver, "test3.png")
             save_btn = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
             )
             save_btn.click()
-            screenshot_to_drive(driver, "test4.png")
             time.sleep(5)
             break
         except Exception:
@@ -240,7 +237,6 @@ def add_to_cart(driver, asin, target):
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
             print("パターン1")
-            screenshot_to_drive(driver, f"result_{asin}.png")
             for seller_name_element in seller_name_elements:
                 print(seller_name_element.text)
             for seller_name_element in seller_name_elements:
@@ -276,7 +272,6 @@ def add_to_cart(driver, asin, target):
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
             print("パターン2")
-            screenshot_to_drive(driver, f"result_{asin}.png")
             for seller_name_element in seller_name_elements:
                 print(seller_name_element.text)
             for seller_name_element in seller_name_elements:
@@ -323,7 +318,8 @@ def add_to_cart(driver, asin, target):
         try:
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
-            set_cookie(driver, url)
+            driver.get(url)
+            # set_cookie(driver, url)
 
             # 販売元が表示されているか判定
             seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
@@ -383,53 +379,59 @@ def get_stock_count(driver, asin, target):
         stock count
     """
 
-    retry_count = 0
-    while True:
-        try:
-            # カートに移動
-            driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-            # 数量選択ページに遷移
-            quantity_button = driver.find_element(
-                By.CSS_SELECTOR, "#a-autoid-0-announce"
-            )
-            quantity_button.click()
-            # 10+を選択
-            while "product" in driver.current_url:
-                print("キャンペーン広告をクリックしました。ブラウザバックします")
-                driver.back()
-            ten_plus_option = driver.find_element(
-                By.XPATH, "//a[contains(text(),'10+')]"
-            )
-            ten_plus_option.click()
-            # 数量入力
-            quantity_input = driver.find_element(By.NAME, "quantityBox")
-            quantity_input.send_keys(Keys.CONTROL + "a")
-            quantity_input.send_keys("999")
-            quantity_input.send_keys(Keys.RETURN)
-            time.sleep(10)
-            # 購入可能数量を取得して出力
-            driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-            quantity_input = driver.find_element(By.NAME, "quantityBox")
-            available_quantity = quantity_input.get_attribute("value")
-            print(f"- 在庫数: {available_quantity}")
-            stock_count = available_quantity
-            return stock_count
-        except Exception:
-            if retry_count < MAX_RETRIES:
-                retry_count += 1
-                print(
-                    f"- get_stock_count: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
-                )
-                driver.quit()
-                driver = init_driver()
-                update_address(driver)
-                add_to_cart(driver, asin, target)
-            else:
-                print(
-                    "- get_stock_count: リトライ上限に達しました。次の商品に移ります。"
-                )
-                stock_count = "error"
-                return stock_count
+    # retry_count = 0
+    # while True:
+    #     try:
+    # カートに移動
+    driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+    screenshot_to_drive(driver, f"{asin}_カートに移動.png")
+    # 数量選択ページに遷移
+    quantity_button = driver.find_element(
+        By.CSS_SELECTOR, "#a-autoid-0-announce"
+    )
+    quantity_button.click()
+    screenshot_to_drive(driver, f"{asin}_数量選択ページに遷移.png")
+    # 10+を選択
+    while "product" in driver.current_url:
+        print("キャンペーン広告をクリックしました。ブラウザバックします")
+        driver.back()
+    ten_plus_option = driver.find_element(
+        By.XPATH, "//a[contains(text(),'10+')]"
+    )
+    ten_plus_option.click()
+    screenshot_to_drive(driver, f"{asin}_10+を選択.png")
+    # 数量入力
+    quantity_input = driver.find_element(By.NAME, "quantityBox")
+    quantity_input.send_keys(Keys.CONTROL + "a")
+    quantity_input.send_keys("999")
+    quantity_input.send_keys(Keys.RETURN)
+    screenshot_to_drive(driver, f"{asin}_数量入力.png")
+    time.sleep(10)
+    screenshot_to_drive(driver, f"{asin}_数量入力_10秒後.png")
+    # 購入可能数量を取得して出力
+    driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+    quantity_input = driver.find_element(By.NAME, "quantityBox")
+    available_quantity = quantity_input.get_attribute("value")
+    screenshot_to_drive(driver, f"{asin}_購入可能数量を取得して出力.png")
+    print(f"- 在庫数: {available_quantity}")
+    stock_count = available_quantity
+    return stock_count
+        # except Exception:
+        #     if retry_count < MAX_RETRIES:
+        #         retry_count += 1
+        #         print(
+        #             f"- get_stock_count: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+        #         )
+        #         driver.quit()
+        #         driver = init_driver()
+        #         update_address(driver)
+        #         add_to_cart(driver, asin, target)
+        #     else:
+        #         print(
+        #             "- get_stock_count: リトライ上限に達しました。次の商品に移ります。"
+        #         )
+        #         stock_count = "error"
+        #         return stock_count
 
 
 def post_to_spreadsheet(auth, stock_counts):
@@ -464,18 +466,18 @@ if __name__ == "__main__":
     # ASIN / 出品者を取得
     print("ASIN / 出品者を取得します")
     asins, targets = get_asins_and_targets(auth)
-    driver = init_driver()
     # Amazon から在庫数を取得
     print("Amazon から在庫数を取得します")
     stock_counts = []
     for asin, target in zip(asins, targets):
+        driver = init_driver()
         update_address(driver)
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
             stock_counts.append(get_stock_count(driver, asin, target))
         else:
             stock_counts.append(stock_count)
-    driver.quit()
+        driver.quit()
     # スプレッドシートへ在庫数を入力
     print("スプレッドシートへ在庫数を入力します")
     post_to_spreadsheet(auth, stock_counts)
