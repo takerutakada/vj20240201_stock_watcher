@@ -141,15 +141,18 @@ def update_address(driver):
         try:
             url = "https://www.amazon.co.jp/"
             driver.get(url)
+            screenshot_to_drive(driver, "test1.png")
             # set_cookie(driver, url)
             update_address_txt = driver.find_element(
                 By.XPATH, "//*[@id='glow-ingress-line2']"
             )
             update_address_txt.click()
+            screenshot_to_drive(driver, "test2.png")
             postcode_0_input = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
             )
             postcode_0_input.send_keys("100")
+            screenshot_to_drive(driver, "test3.png")
             postcode_1_input = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
             )
@@ -157,7 +160,9 @@ def update_address(driver):
             save_btn = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
             )
+            screenshot_to_drive(driver, "test4.png")
             save_btn.click()
+            screenshot_to_drive(driver, "test5.png")
             time.sleep(5)
             break
         except Exception:
