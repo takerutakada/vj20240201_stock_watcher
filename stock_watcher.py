@@ -140,9 +140,9 @@ def update_address(driver):
     while True:
         try:
             url = "https://www.amazon.co.jp/"
-            driver.get(url)
-            screenshot_to_drive(driver, "test1.png")
+            # driver.get(url)
             set_cookie(driver, url)
+            screenshot_to_drive(driver, "test1.png")
             update_address_txt = driver.find_element(
                 By.XPATH, "//*[@id='glow-ingress-line2']"
             )
