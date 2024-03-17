@@ -5,6 +5,7 @@ import gspread
 import os
 import sys
 import json
+import requests
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -176,6 +177,29 @@ def update_address(driver):
         #     else:
         #         print("- update_address: リトライ上限に達しました。処理を終了します。")
         #         sys.exit(1)
+
+def upload_images_to_slack(file_name):
+
+    # get width and height of the page
+    w = driver.execute_script("return document.body.scrollWidth;")
+    h = driver.execute_script("return document.body.scrollHeight;")
+    # set window size
+    driver.set_window_size(w, h)
+    driver.save_screenshot(file_name)
+    file_path = glob(file_name)[0]
+
+    TOKEN = (
+        "xoxb-1432704978342-6810735960085-mghFpCuXTWPeNeWteGxue53O"  # slackのトークン
+    )  # slackのトークン
+    files = {"file": open(file_path, "rb")}
+    param = {
+        "token": TOKEN,
+        "channels": "C01CQLWASB0",
+        "filename": "filename",
+        "initial_comment": "initial comment",
+        "title": "title",
+    }
+    requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
 
 
 def screenshot_to_drive(driver, file_name):
@@ -390,6 +414,7 @@ def get_stock_count(driver, asin, target):
     # カートに移動
     driver.get("https://www.amazon.co.jp/gp/cart/view.html")
     # screenshot_to_drive(driver, f"{asin}_カートに移動.png")
+    upload_images_to_slack("test_slack.png")
     # 数量選択ページに遷移
     quantity_button = driver.find_element(
         By.CSS_SELECTOR, "#a-autoid-0-announce"
