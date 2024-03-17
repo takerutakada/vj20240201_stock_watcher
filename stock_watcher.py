@@ -142,17 +142,17 @@ def update_address(driver):
     url = "https://www.amazon.co.jp/"
     # driver.get(url)
     set_cookie(driver, url)
-    screenshot_to_drive(driver, "test1.png")
+    # screenshot_to_drive(driver, "test1.png")
     update_address_txt = driver.find_element(
         By.XPATH, "//*[@id='glow-ingress-line2']"
     )
     update_address_txt.click()
-    screenshot_to_drive(driver, "test2.png")
+    # screenshot_to_drive(driver, "test2.png")
     postcode_0_input = driver.find_element(
         By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
     )
     postcode_0_input.send_keys("100")
-    screenshot_to_drive(driver, "test3.png")
+    # screenshot_to_drive(driver, "test3.png")
     postcode_1_input = driver.find_element(
         By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
     )
@@ -160,9 +160,9 @@ def update_address(driver):
     save_btn = driver.find_element(
         By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
     )
-    screenshot_to_drive(driver, "test4.png")
+    # screenshot_to_drive(driver, "test4.png")
     save_btn.click()
-    screenshot_to_drive(driver, "test5.png")
+    # screenshot_to_drive(driver, "test5.png")
     time.sleep(5)
         #     break
         # except Exception:
@@ -389,13 +389,13 @@ def get_stock_count(driver, asin, target):
         try:
             # カートに移動
             driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-            screenshot_to_drive(driver, f"{asin}_カートに移動.png")
+            # screenshot_to_drive(driver, f"{asin}_カートに移動.png")
             # 数量選択ページに遷移
             quantity_button = driver.find_element(
                 By.CSS_SELECTOR, "#a-autoid-0-announce"
             )
             quantity_button.click()
-            screenshot_to_drive(driver, f"{asin}_数量選択ページに遷移.png")
+            # screenshot_to_drive(driver, f"{asin}_数量選択ページに遷移.png")
             # 10+を選択
             while "product" in driver.current_url:
                 print("キャンペーン広告をクリックしました。ブラウザバックします")
@@ -404,20 +404,20 @@ def get_stock_count(driver, asin, target):
                 By.XPATH, "//a[contains(text(),'10+')]"
             )
             ten_plus_option.click()
-            screenshot_to_drive(driver, f"{asin}_10+を選択.png")
+            # screenshot_to_drive(driver, f"{asin}_10+を選択.png")
             # 数量入力
             quantity_input = driver.find_element(By.NAME, "quantityBox")
             quantity_input.send_keys(Keys.CONTROL + "a")
             quantity_input.send_keys("999")
             quantity_input.send_keys(Keys.RETURN)
-            screenshot_to_drive(driver, f"{asin}_数量入力.png")
+            # screenshot_to_drive(driver, f"{asin}_数量入力.png")
             time.sleep(10)
-            screenshot_to_drive(driver, f"{asin}_数量入力_10秒後.png")
+            # screenshot_to_drive(driver, f"{asin}_数量入力_10秒後.png")
             # 購入可能数量を取得して出力
             driver.get("https://www.amazon.co.jp/gp/cart/view.html")
             quantity_input = driver.find_element(By.NAME, "quantityBox")
             available_quantity = quantity_input.get_attribute("value")
-            screenshot_to_drive(driver, f"{asin}_購入可能数量を取得して出力.png")
+            # screenshot_to_drive(driver, f"{asin}_購入可能数量を取得して出力.png")
             print(f"- 在庫数: {available_quantity}")
             stock_count = available_quantity
             return stock_count
