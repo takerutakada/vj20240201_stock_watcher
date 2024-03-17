@@ -196,7 +196,7 @@ def upload_images_to_slack(file_name):
         "token": TOKEN,
         "channels": "C01CQLWASB0",
         "filename": "filename",
-        "initial_comment": "initial comment",
+        "initial_comment": "test!!!",
         "title": "title",
     }
     requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
@@ -414,7 +414,7 @@ def get_stock_count(driver, asin, target):
     # カートに移動
     driver.get("https://www.amazon.co.jp/gp/cart/view.html")
     # screenshot_to_drive(driver, f"{asin}_カートに移動.png")
-    upload_images_to_slack("test_slack.png")
+    upload_images_to_slack(f"{asin}_{target}_quantity.png")
     # 数量選択ページに遷移
     quantity_button = driver.find_element(
         By.CSS_SELECTOR, "#a-autoid-0-announce"
