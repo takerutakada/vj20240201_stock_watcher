@@ -384,59 +384,59 @@ def get_stock_count(driver, asin, target):
         stock count
     """
 
-    retry_count = 0
-    while True:
-        try:
-            # カートに移動
-            driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-            # screenshot_to_drive(driver, f"{asin}_カートに移動.png")
-            # 数量選択ページに遷移
-            quantity_button = driver.find_element(
-                By.CSS_SELECTOR, "#a-autoid-0-announce"
-            )
-            quantity_button.click()
-            # screenshot_to_drive(driver, f"{asin}_数量選択ページに遷移.png")
-            # 10+を選択
-            while "product" in driver.current_url:
-                print("キャンペーン広告をクリックしました。ブラウザバックします")
-                driver.back()
-            ten_plus_option = driver.find_element(
-                By.XPATH, "//a[contains(text(),'10+')]"
-            )
-            ten_plus_option.click()
-            # screenshot_to_drive(driver, f"{asin}_10+を選択.png")
-            # 数量入力
-            quantity_input = driver.find_element(By.NAME, "quantityBox")
-            quantity_input.send_keys(Keys.CONTROL + "a")
-            quantity_input.send_keys("999")
-            quantity_input.send_keys(Keys.RETURN)
-            # screenshot_to_drive(driver, f"{asin}_数量入力.png")
-            time.sleep(10)
-            # screenshot_to_drive(driver, f"{asin}_数量入力_10秒後.png")
-            # 購入可能数量を取得して出力
-            driver.get("https://www.amazon.co.jp/gp/cart/view.html")
-            quantity_input = driver.find_element(By.NAME, "quantityBox")
-            available_quantity = quantity_input.get_attribute("value")
-            # screenshot_to_drive(driver, f"{asin}_購入可能数量を取得して出力.png")
-            print(f"- 在庫数: {available_quantity}")
-            stock_count = available_quantity
-            return stock_count
-        except Exception:
-            if retry_count < MAX_RETRIES:
-                retry_count += 1
-                print(
-                    f"- get_stock_count: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
-                )
-                driver.quit()
-                driver = init_driver()
-                update_address(driver)
-                add_to_cart(driver, asin, target)
-            else:
-                print(
-                    "- get_stock_count: リトライ上限に達しました。次の商品に移ります。"
-                )
-                stock_count = "error"
-                return stock_count
+    # retry_count = 0
+    # while True:
+    #     try:
+    # カートに移動
+    driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+    # screenshot_to_drive(driver, f"{asin}_カートに移動.png")
+    # 数量選択ページに遷移
+    quantity_button = driver.find_element(
+        By.CSS_SELECTOR, "#a-autoid-0-announce"
+    )
+    quantity_button.click()
+    # screenshot_to_drive(driver, f"{asin}_数量選択ページに遷移.png")
+    # 10+を選択
+    while "product" in driver.current_url:
+        print("キャンペーン広告をクリックしました。ブラウザバックします")
+        driver.back()
+    ten_plus_option = driver.find_element(
+        By.XPATH, "//a[contains(text(),'10+')]"
+    )
+    ten_plus_option.click()
+    # screenshot_to_drive(driver, f"{asin}_10+を選択.png")
+    # 数量入力
+    quantity_input = driver.find_element(By.NAME, "quantityBox")
+    quantity_input.send_keys(Keys.CONTROL + "a")
+    quantity_input.send_keys("999")
+    quantity_input.send_keys(Keys.RETURN)
+    # screenshot_to_drive(driver, f"{asin}_数量入力.png")
+    time.sleep(10)
+    # screenshot_to_drive(driver, f"{asin}_数量入力_10秒後.png")
+    # 購入可能数量を取得して出力
+    driver.get("https://www.amazon.co.jp/gp/cart/view.html")
+    quantity_input = driver.find_element(By.NAME, "quantityBox")
+    available_quantity = quantity_input.get_attribute("value")
+    # screenshot_to_drive(driver, f"{asin}_購入可能数量を取得して出力.png")
+    print(f"- 在庫数: {available_quantity}")
+    stock_count = available_quantity
+    return stock_count
+        # except Exception:
+        #     if retry_count < MAX_RETRIES:
+        #         retry_count += 1
+        #         print(
+        #             f"- get_stock_count: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+        #         )
+        #         driver.quit()
+        #         driver = init_driver()
+        #         update_address(driver)
+        #         add_to_cart(driver, asin, target)
+        #     else:
+        #         print(
+        #             "- get_stock_count: リトライ上限に達しました。次の商品に移ります。"
+        #         )
+        #         stock_count = "error"
+        #         return stock_count
 
 
 def post_to_spreadsheet(auth, stock_counts):
