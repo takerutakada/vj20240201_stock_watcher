@@ -148,6 +148,7 @@ def update_address(driver):
     url = "https://www.amazon.co.jp/"
     # driver.get(url)
     set_cookie(driver, url)
+    upload_images_to_slack(driver, "test.png")
     update_address_txt = driver.find_element(
         By.XPATH, "//*[@id='glow-ingress-line2']"
     )
