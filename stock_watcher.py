@@ -15,15 +15,15 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 # 実行環境
-# ACTION_ENV = "Local"
-ACTION_ENV = "GitHub Actions"
+ACTION_ENV = "Local"
+# ACTION_ENV = "GitHub Actions"
 # 設定ファイル保管場所
 SETTING_DIR = "settings"
 SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}"
 # モード（TEST / PROD）
 MODE = "TEST"
 # cookie.json
-COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
+# COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
 # 最大リトライ回数
 MAX_RETRIES = 3
 
@@ -35,8 +35,13 @@ if ACTION_ENV == "Local":
     JSON = ini_file.get(MODE, "JSON")
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
+    # Slack API
+    SLACK_TOKEN = ini_file.get(MODE, "SLACK_TOKEN")
+    SLACK_CHANNEL = ini_file.get(MODE, "SLACK_CHANNEL")
 elif ACTION_ENV == "GitHub Actions":
     JSON = "service_account.json"
+    SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
+    SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
     if MODE == "TEST":
         # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
         WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY_TEST")
@@ -99,6 +104,7 @@ def init_driver():
     options.add_experimental_option("prefs", prefs)
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     options.add_argument("--headless")
+    options.add_argument("--disk-cache=false")
     driver = webdriver.Chrome(options=options)
     driver.implicitly_wait(10)
     driver.set_window_position(0, 0)  # ブラウザの位置を左上に固定
@@ -118,8 +124,11 @@ def set_cookie(driver, url):
     """
 
     driver.get(url)
-    json_open = open(COOKIE_JSON, "r")
-    cookies = json.load(json_open)
+    raw_cookies = driver.get_cookies()
+    cookies_str = json.dumps(raw_cookies)
+    cookies = json.loads(cookies_str)
+    # json_open = open(COOKIE_JSON, "r")
+    # cookies = json.load(json_open)
     for cookie in cookies:
         tmp = {"name": cookie["name"], "value": cookie["value"]}
         driver.add_cookie(tmp)
@@ -178,7 +187,7 @@ def update_address(driver):
         #         print("- update_address: リトライ上限に達しました。処理を終了します。")
         #         sys.exit(1)
 
-def upload_images_to_slack(file_name):
+def upload_images_to_slack(driver, file_name):
 
     # get width and height of the page
     w = driver.execute_script("return document.body.scrollWidth;")
@@ -188,19 +197,16 @@ def upload_images_to_slack(file_name):
     driver.save_screenshot(file_name)
     file_path = glob(file_name)[0]
 
-    TOKEN = (
-        "xoxb-1432704978342-6810735960085-mghFpCuXTWPeNeWteGxue53O"  # slackのトークン
-    )  # slackのトークン
     files = {"file": open(file_path, "rb")}
     param = {
-        "token": TOKEN,
-        "channels": "C01CQLWASB0",
+        "token": SLACK_TOKEN,
+        "channels": SLACK_CHANNEL,
         "filename": "filename",
-        "initial_comment": "test!!!",
+        "initial_comment": "initial comment",
         "title": "title",
     }
-    requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
-
+    result = requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
+    print(result.text)
 
 def screenshot_to_drive(driver, file_name):
     # get width and height of the page
@@ -347,8 +353,8 @@ def add_to_cart(driver, asin, target):
         try:
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
-            driver.get(url)
-            # set_cookie(driver, url)
+            # driver.get(url)
+            set_cookie(driver, url)
 
             # 販売元が表示されているか判定
             seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
@@ -414,7 +420,8 @@ def get_stock_count(driver, asin, target):
     # カートに移動
     driver.get("https://www.amazon.co.jp/gp/cart/view.html")
     # screenshot_to_drive(driver, f"{asin}_カートに移動.png")
-    upload_images_to_slack(f"{asin}_{target}_quantity.png")
+    upload_images_to_slack(driver, f"{asin}_{target}_quantity.png")
+
     # 数量選択ページに遷移
     quantity_button = driver.find_element(
         By.CSS_SELECTOR, "#a-autoid-0-announce"
