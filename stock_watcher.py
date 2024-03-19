@@ -331,7 +331,7 @@ def add_to_cart(driver, asin, target):
     url = f"https://www.amazon.co.jp/dp/{asin}"
     driver.get(url)
     driver.delete_all_cookies()
-    set_cookie(driver, url)
+    set_cookie(driver, url, "first")
     upload_images_to_slack(driver, f"{asin}_{target}_1.png")
     # 住所を変更
     update_address_btn = driver.find_element(
