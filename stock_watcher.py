@@ -207,8 +207,7 @@ def upload_images_to_slack(driver, file_name):
         "initial_comment": "initial comment",
         "title": "title",
     }
-    result = requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
-    print(result.text)
+    requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
 
 
 def add_to_cart(driver, asin, target):
