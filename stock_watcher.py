@@ -129,7 +129,7 @@ def set_cookie(driver, url, status=None):
     driver.get(url)
     upload_images_to_slack(driver, "test.png")
     if status == "first":
-        json_open = open(COOKIE_JSON, "r")
+        json_open = open(f"{SETTING_DIR_PATH}/{COOKIE_JSON}", "r")
         cookies = json.load(json_open)
     else:
         raw_cookies = driver.get_cookies()
