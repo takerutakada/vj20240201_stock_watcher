@@ -325,76 +325,76 @@ def add_to_cart(driver, asin, target):
             driver.close()
         driver.switch_to.window(driver.window_handles[0])
 
-    retry_count = 0
-    while True:
-        try:
-            print(f"ASIN: {asin} / target: {target}")
-            url = f"https://www.amazon.co.jp/dp/{asin}"
-            # driver.get(url)
-            driver.delete_all_cookies()
-            set_cookie(driver, url)
-            upload_images_to_slack(driver, f"{asin}_{target}_1.png")
-            # 住所を変更
-            update_address_btn = driver.find_element(
-                By.XPATH, "//*[@id='a-autoid-39']/span/input"
-            )
-            update_address_btn.click()
-            upload_images_to_slack(driver, f"{asin}_{target}_2.png")
-            postcode_0_input = driver.find_element(
-                By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
-            )
-            postcode_0_input.send_keys("100")
-            upload_images_to_slack(driver, f"{asin}_{target}_3.png")
-            postcode_1_input = driver.find_element(
-                By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
-            )
-            postcode_1_input.send_keys("0001")
-            upload_images_to_slack(driver, f"{asin}_{target}_4.png")
-            save_btn = driver.find_element(
-                By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
-            )
-            save_btn.click()
-            upload_images_to_slack(driver, f"{asin}_{target}_5.png")
-            time.sleep(5)
+    # retry_count = 0
+    # while True:
+    #     try:
+    print(f"ASIN: {asin} / target: {target}")
+    url = f"https://www.amazon.co.jp/dp/{asin}"
+    # driver.get(url)
+    driver.delete_all_cookies()
+    set_cookie(driver, url)
+    upload_images_to_slack(driver, f"{asin}_{target}_1.png")
+    # 住所を変更
+    update_address_btn = driver.find_element(
+        By.XPATH, "//*[@id='a-autoid-39']/span/input"
+    )
+    update_address_btn.click()
+    upload_images_to_slack(driver, f"{asin}_{target}_2.png")
+    postcode_0_input = driver.find_element(
+        By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
+    )
+    postcode_0_input.send_keys("100")
+    upload_images_to_slack(driver, f"{asin}_{target}_3.png")
+    postcode_1_input = driver.find_element(
+        By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
+    )
+    postcode_1_input.send_keys("0001")
+    upload_images_to_slack(driver, f"{asin}_{target}_4.png")
+    save_btn = driver.find_element(
+        By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
+    )
+    save_btn.click()
+    upload_images_to_slack(driver, f"{asin}_{target}_5.png")
+    time.sleep(5)
 
-            # 販売元が表示されているか判定
-            seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
-            # 販売元が表示されている
-            if len(seller_name_elements):
-                print("販売元が表示されている")
-                seller_name = seller_name_elements[0].text
-                if seller_name == target:
-                    print("販売元＝ターゲット")
-                    # カートに追加
-                    add_to_cart_button = driver.find_element(
-                        By.XPATH, "//*[@id='add-to-cart-button']"
-                    )
-                    add_to_cart_button.click()
-                    stock_count = "get_by_stock_count"
-                else:
-                    print("販売元がターゲットでない")
-                    stock_count = track_target()
-                    close_tabs()
+    # 販売元が表示されているか判定
+    seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
+    # 販売元が表示されている
+    if len(seller_name_elements):
+        print("販売元が表示されている")
+        seller_name = seller_name_elements[0].text
+        if seller_name == target:
+            print("販売元＝ターゲット")
+            # カートに追加
+            add_to_cart_button = driver.find_element(
+                By.XPATH, "//*[@id='add-to-cart-button']"
+            )
+            add_to_cart_button.click()
+            stock_count = "get_by_stock_count"
+        else:
+            print("販売元がターゲットでない")
+            stock_count = track_target()
+            close_tabs()
 
-            else:
-                print("販売元が表示されていない")
-                stock_count = track_target()
-                close_tabs()
-            return stock_count
-        except Exception as e:
-            driver.quit()
-            driver = init_driver()
-            update_address(driver)
-            if retry_count < MAX_RETRIES:
-                retry_count += 1
-                print(
-                    f"- add_to_cart: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
-                )
-            else:
-                print("- add_to_cart: リトライ上限に達しました。次の商品に移ります。")
-                print(f"エラー内容: {e}")
-                stock_count = "error"
-                return stock_count
+    else:
+        print("販売元が表示されていない")
+        stock_count = track_target()
+        close_tabs()
+    return stock_count
+        # except Exception as e:
+        #     driver.quit()
+        #     driver = init_driver()
+        #     update_address(driver)
+        #     if retry_count < MAX_RETRIES:
+        #         retry_count += 1
+        #         print(
+        #             f"- add_to_cart: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+        #         )
+        #     else:
+        #         print("- add_to_cart: リトライ上限に達しました。次の商品に移ります。")
+        #         print(f"エラー内容: {e}")
+        #         stock_count = "error"
+        #         return stock_count
 
 
 def get_stock_count(driver, asin, target):
