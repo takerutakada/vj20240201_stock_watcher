@@ -127,7 +127,7 @@ def set_cookie(driver, url, status=None):
     """
 
     driver.get(url)
-    upload_images_to_slack(driver, "test.png")
+    # upload_images_to_slack(driver, "test.png")
     if status == "first":
         json_open = open(f"{SETTING_DIR_PATH}/{COOKIE_JSON}", "r")
         cookies = json.load(json_open)
@@ -140,7 +140,7 @@ def set_cookie(driver, url, status=None):
         driver.add_cookie(tmp)
     # 2回アクセスする必要がある
     driver.get(url)
-    upload_images_to_slack(driver, "test.png")
+    # upload_images_to_slack(driver, "test.png")
 
 
 def update_address(driver):
@@ -231,7 +231,7 @@ def add_to_cart(driver, asin, target):
     """
 
     def track_target():
-        upload_images_to_slack(driver, f"{asin}_{target}.png")
+        # upload_images_to_slack(driver, f"{asin}_{target}.png")
         out_of_stock = driver.find_elements(By.ID, "outOfStock")
         olp_link_widget = driver.find_elements(
             By.XPATH, "//*[@id='olpLinkWidget_feature_div']/div[2]"
@@ -333,24 +333,28 @@ def add_to_cart(driver, asin, target):
             # driver.get(url)
             driver.delete_all_cookies()
             set_cookie(driver, url)
-
+            upload_images_to_slack(driver, f"{asin}_{target}_1.png")
             # 住所を変更
             update_address_btn = driver.find_element(
                 By.XPATH, "//*[@id='a-autoid-39']/span/input"
             )
             update_address_btn.click()
+            upload_images_to_slack(driver, f"{asin}_{target}_2.png")
             postcode_0_input = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
             )
             postcode_0_input.send_keys("100")
+            upload_images_to_slack(driver, f"{asin}_{target}_3.png")
             postcode_1_input = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
             )
             postcode_1_input.send_keys("0001")
+            upload_images_to_slack(driver, f"{asin}_{target}_4.png")
             save_btn = driver.find_element(
                 By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
             )
             save_btn.click()
+            upload_images_to_slack(driver, f"{asin}_{target}_5.png")
             time.sleep(5)
 
             # 販売元が表示されているか判定
@@ -420,7 +424,7 @@ def get_stock_count(driver, asin, target):
             # upload_images_to_slack(driver, f"{asin}_{target}_quantity.png")
 
             # 数量選択ページに遷移
-            upload_images_to_slack(driver, "test.png")
+            # upload_images_to_slack(driver, "test.png")
             quantity_button = driver.find_element(
                 By.CSS_SELECTOR, "#a-autoid-0-announce"
             )
