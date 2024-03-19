@@ -232,7 +232,6 @@ def add_to_cart(driver, asin, target):
     update_address_btn.click()
     postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
     postcode_0_input.send_keys("100")
-    upload_images_to_slack(driver, f"{asin}_{target}_3.png")
     postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
     postcode_1_input.send_keys("0001")
     upload_images_to_slack(driver, f"{asin}_{target}_4.png")
