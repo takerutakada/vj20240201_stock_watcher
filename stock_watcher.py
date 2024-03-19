@@ -240,7 +240,7 @@ def add_to_cart(driver, asin, target):
     save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
     save_btn.click()
     upload_images_to_slack(driver, "test.png")
-    time.sleep(10)
+    time.sleep(20)
     upload_images_to_slack(driver, "test.png")
     complete_btn = driver.find_element(
         By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input"
