@@ -31,6 +31,8 @@ if ACTION_ENV == "Local":
     ini_file.read(f"{SETTING_DIR_PATH}/config.ini", "utf-8-sig")
     # service_account.json
     JSON = ini_file.get(MODE, "JSON")
+    # cookie.json
+    COOKIE_JSON = ini_file.get(MODE, "COOKIE_JSON")
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
     # Slack API
@@ -38,6 +40,7 @@ if ACTION_ENV == "Local":
     SLACK_CHANNEL = ini_file.get(MODE, "SLACK_CHANNEL")
 elif ACTION_ENV == "GitHub Actions":
     JSON = "service_account.json"
+    COOKIE_JSON = "cookie.json"
     SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
     SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
     if MODE == "TEST":
@@ -111,7 +114,7 @@ def init_driver():
     return driver
 
 
-def set_cookie(driver, url):
+def set_cookie(driver, url, status=None):
     """
     Parameters
     ----------
@@ -119,13 +122,19 @@ def set_cookie(driver, url):
         Initialized WebDriver
     url : str
         access URL
+    status : str
+        first or None
     """
 
     driver.get(url)
     upload_images_to_slack(driver, "test.png")
-    raw_cookies = driver.get_cookies()
-    cookies_str = json.dumps(raw_cookies)
-    cookies = json.loads(cookies_str)
+    if status == "first":
+        json_open = open(COOKIE_JSON, "r")
+        cookies = json.load(json_open)
+    else:
+        raw_cookies = driver.get_cookies()
+        cookies_str = json.dumps(raw_cookies)
+        cookies = json.loads(cookies_str)
     for cookie in cookies:
         tmp = {"name": cookie["name"], "value": cookie["value"]}
         driver.add_cookie(tmp)
@@ -149,7 +158,7 @@ def update_address(driver):
     #     try:
     url = "https://www.amazon.co.jp/"
     # driver.get(url)
-    set_cookie(driver, url)
+    set_cookie(driver, url, "first")
     update_address_txt = driver.find_element(
         By.XPATH, "//*[@id='glow-ingress-line2']"
     )
