@@ -314,7 +314,7 @@ def add_to_cart(driver, asin, target):
                 stock_count = 0
         else:
             print("情報を取得できません")
-            stock_count = "error"
+            raise Exception
 
         return stock_count
 
