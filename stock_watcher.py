@@ -127,7 +127,6 @@ def set_cookie(driver, url, status=None):
     """
 
     driver.get(url)
-    # upload_images_to_slack(driver, "test.png")
     if status == "first":
         json_open = open(f"{SETTING_DIR_PATH}/{COOKIE_JSON}", "r")
         cookies = json.load(json_open)
@@ -157,8 +156,8 @@ def update_address(driver):
     while True:
         try:
             url = "https://www.amazon.co.jp/"
-            # driver.get(url)
-            set_cookie(driver, url, "first")
+            driver.get(url)
+            # set_cookie(driver, url, "first")
             update_address_txt = driver.find_element(
                 By.XPATH, "//*[@id='glow-ingress-line2']"
             )
@@ -330,9 +329,9 @@ def add_to_cart(driver, asin, target):
     #     try:
     print(f"ASIN: {asin} / target: {target}")
     url = f"https://www.amazon.co.jp/dp/{asin}"
-    # driver.get(url)
-    driver.delete_all_cookies()
-    set_cookie(driver, url)
+    driver.get(url)
+    # driver.delete_all_cookies()
+    # set_cookie(driver, url)
     upload_images_to_slack(driver, f"{asin}_{target}_1.png")
     # 住所を変更
     update_address_btn = driver.find_element(
@@ -463,7 +462,7 @@ def get_stock_count(driver, asin, target):
                 )
                 driver.quit()
                 driver = init_driver()
-                update_address(driver)
+                # update_address(driver)
                 add_to_cart(driver, asin, target)
             else:
                 print(
@@ -511,7 +510,7 @@ if __name__ == "__main__":
     stock_counts = []
     for asin, target in zip(asins, targets):
         driver = init_driver()
-        update_address(driver)
+        # update_address(driver)
         stock_count = add_to_cart(driver, asin, target)
         if stock_count == "get_by_stock_count":
             stock_counts.append(get_stock_count(driver, asin, target))
