@@ -399,6 +399,7 @@ def get_stock_count(driver, asin, target):
     # upload_images_to_slack(driver, f"{asin}_{target}_quantity.png")
 
     # 数量選択ページに遷移
+    upload_images_to_slack(driver, "test.png")
     quantity_button = driver.find_element(
         By.CSS_SELECTOR, "#a-autoid-0-announce"
     )
