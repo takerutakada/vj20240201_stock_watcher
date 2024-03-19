@@ -3,3 +3,4 @@ env/
 *.json
 *.png
 util.py
+stock_watcher_simple.py

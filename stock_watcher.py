@@ -4,6 +4,8 @@ import datetime
 import gspread
 import os
 import sys
+import request
+from glob import glob
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -26,10 +28,18 @@ if ACTION_ENV == "Local":
     ini_file.read(f"{SETTING_DIR_PATH}/config.ini", "utf-8-sig")
     # service_account.json
     JSON = ini_file.get(MODE, "JSON")
+    # cookie.json
+    COOKIE_JSON = ini_file.get(MODE, "COOKIE_JSON")
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
+    # Slack API
+    SLACK_TOKEN = ini_file.get(MODE, "SLACK_TOKEN")
+    SLACK_CHANNEL = ini_file.get(MODE, "SLACK_CHANNEL")
 elif ACTION_ENV == "GitHub Actions":
     JSON = "service_account.json"
+    COOKIE_JSON = "cookie.json"
+    SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
+    SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
     if MODE == "TEST":
         # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
         WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY_TEST")
@@ -220,14 +230,16 @@ def add_to_cart(driver, asin, target):
                 "/html/body/div[2]/header/div/div[4]/div[1]/div/div/div[3]/span[2]/span/input",
             )
             update_address_btn.click()
+            upload_images_to_slack(driver, f"{asin}_{target}_2.png")
             postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
             postcode_0_input.send_keys("100")
+            upload_images_to_slack(driver, f"{asin}_{target}_3.png")
             postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
             postcode_1_input.send_keys("0001")
-            time.sleep(5)
+            upload_images_to_slack(driver, f"{asin}_{target}_4.png")
             save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
             save_btn.click()
-            time.sleep(5)
+            upload_images_to_slack(driver, f"{asin}_{target}_5.png")
             complete_btn = driver.find_element(
                 By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input"
             )
@@ -270,6 +282,25 @@ def add_to_cart(driver, asin, target):
                 print(f"エラー内容: {e}")
                 stock_count = "error"
                 return stock_count
+
+def upload_images_to_slack(driver, file_name):
+    # get width and height of the page
+    w = driver.execute_script("return document.body.scrollWidth;")
+    h = driver.execute_script("return document.body.scrollHeight;")
+    # set window size
+    driver.set_window_size(w, h)
+    driver.save_screenshot(file_name)
+    file_path = glob(file_name)[0]
+
+    files = {"file": open(file_path, "rb")}
+    param = {
+        "token": SLACK_TOKEN,
+        "channels": SLACK_CHANNEL,
+        "filename": "filename",
+        "initial_comment": "initial comment",
+        "title": "title",
+    }
+    requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
 
 
 def get_stock_count(driver, asin, target):
