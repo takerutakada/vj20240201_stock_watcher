@@ -339,6 +339,7 @@ def add_to_cart(driver, asin, target):
         By.XPATH, "//*[@id='a-autoid-39']/span/input"
     )
     update_address_btn.click()
+    time.sleep(10)
     upload_images_to_slack(driver, f"{asin}_{target}_2.png")
     postcode_0_input = driver.find_element(
         By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
