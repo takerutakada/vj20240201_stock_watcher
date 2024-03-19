@@ -23,7 +23,7 @@ MODE = "TEST"
 # cookie.json
 # COOKIE_JSON = f"{SETTING_DIR_PATH}/cookie.json"
 # 最大リトライ回数
-MAX_RETRIES = 3
+MAX_RETRIES = 10
 
 if ACTION_ENV == "Local":
     # config.ini の読み込み
