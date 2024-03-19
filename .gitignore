@@ -2,4 +2,3 @@ env/
 *.ini
 *.json
 *.png
-util.py
