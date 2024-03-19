@@ -4,7 +4,6 @@ import datetime
 import gspread
 import os
 import sys
-import json
 import requests
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
@@ -149,8 +148,6 @@ def add_to_cart(driver, asin, target):
                 By.XPATH, "//*[@id='aod-offer-soldBy']/div/div/div[2]/a"
             )
             for seller_name_element in seller_name_elements:
-                print(seller_name_element.text)
-            for seller_name_element in seller_name_elements:
                 # 出品者の中に target が存在する
                 if seller_name_element.text == target:
                     add_to_cart_url = seller_name_element.get_attribute("href")
@@ -227,22 +224,16 @@ def add_to_cart(driver, asin, target):
     print(f"ASIN: {asin} / target: {target}")
     url = f"https://www.amazon.co.jp/dp/{asin}"
     driver.get(url)
-    # driver.delete_all_cookies()
-    # set_cookie(driver, url)
-    upload_images_to_slack(driver, f"{asin}_{target}_1.png")
     # 住所を変更
     update_address_btn = driver.find_element(
         By.XPATH,
         "/html/body/div[2]/header/div/div[4]/div[1]/div/div/div[3]/span[2]/span/input",
     )
     update_address_btn.click()
-    upload_images_to_slack(driver, f"{asin}_{target}_2.png")
     postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
     postcode_0_input.send_keys("100")
-    upload_images_to_slack(driver, f"{asin}_{target}_3.png")
     postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
     postcode_1_input.send_keys("0001")
-    upload_images_to_slack(driver, f"{asin}_{target}_4.png")
     save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
     save_btn.click()
     upload_images_to_slack(driver, f"{asin}_{target}_5.png")
@@ -279,7 +270,6 @@ def add_to_cart(driver, asin, target):
     # except Exception as e:
     #     driver.quit()
     #     driver = init_driver()
-    #     update_address(driver)
     #     if retry_count < MAX_RETRIES:
     #         retry_count += 1
     #         print(
