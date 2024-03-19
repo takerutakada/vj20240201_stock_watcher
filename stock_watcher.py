@@ -336,10 +336,10 @@ def add_to_cart(driver, asin, target):
     upload_images_to_slack(driver, f"{asin}_{target}_1.png")
     # 住所を変更
     update_address_btn = driver.find_element(
-        By.XPATH, "//*[@id='a-autoid-39']/span/input"
+        By.XPATH,
+        "/html/body/div[2]/header/div/div[4]/div[1]/div/div/div[3]/span[2]/span/input",
     )
     update_address_btn.click()
-    time.sleep(10)
     upload_images_to_slack(driver, f"{asin}_{target}_2.png")
     postcode_0_input = driver.find_element(
         By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
@@ -356,6 +356,10 @@ def add_to_cart(driver, asin, target):
     )
     save_btn.click()
     upload_images_to_slack(driver, f"{asin}_{target}_5.png")
+    complete_btn = driver.find_element(
+        By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input"
+    )
+    complete_btn.click()
     time.sleep(5)
 
     # 販売元が表示されているか判定
