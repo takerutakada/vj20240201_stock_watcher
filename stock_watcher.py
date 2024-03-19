@@ -230,13 +230,10 @@ def add_to_cart(driver, asin, target):
         "/html/body/div[2]/header/div/div[4]/div[1]/div/div/div[3]/span[2]/span/input",
     )
     update_address_btn.click()
-    upload_images_to_slack(driver, f"{asin}_{target}_2.png")
     postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
     postcode_0_input.send_keys("100")
-    upload_images_to_slack(driver, f"{asin}_{target}_3.png")
     postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
     postcode_1_input.send_keys("0001")
-    upload_images_to_slack(driver, f"{asin}_{target}_4.png")
     save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
     save_btn.click()
     upload_images_to_slack(driver, f"{asin}_{target}_5.png")
