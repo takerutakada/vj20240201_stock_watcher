@@ -34,19 +34,10 @@ jobs:
           json: ${{ secrets.JSON_TEST }}
           # json: ${{ secrets.JSON }}
           dir: "settings/"
-      - name: Create cookie.json
-        id: create-cookie_json
-        uses: jsdaniell/create-json@v1.2.2
-        with:
-          name: "cookie.json"
-          json: ${{ secrets.COOKIE_JSON }}
-          dir: "settings/"
       - name: Run stock_watcher
         env:
           WORKBOOK_KEY: ${{ secrets.WORKBOOK_KEY }}
           WORKBOOK_KEY_TEST: ${{ secrets.WORKBOOK_KEY_TEST }}
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
           TZ: 'Asia/Tokyo'
         run: python stock_watcher.py
         timeout-minutes: 60
