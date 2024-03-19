@@ -4,7 +4,7 @@ import datetime
 import gspread
 import os
 import sys
-import request
+import requests
 from glob import glob
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
