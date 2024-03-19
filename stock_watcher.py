@@ -331,6 +331,7 @@ def add_to_cart(driver, asin, target):
             print(f"ASIN: {asin} / target: {target}")
             url = f"https://www.amazon.co.jp/dp/{asin}"
             # driver.get(url)
+            driver.delete_all_cookies()
             set_cookie(driver, url)
 
             # 販売元が表示されているか判定
