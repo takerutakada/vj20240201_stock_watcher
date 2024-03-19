@@ -122,6 +122,7 @@ def set_cookie(driver, url):
     """
 
     driver.get(url)
+    upload_images_to_slack(driver, "test.png")
     raw_cookies = driver.get_cookies()
     cookies_str = json.dumps(raw_cookies)
     cookies = json.loads(cookies_str)
@@ -130,6 +131,7 @@ def set_cookie(driver, url):
         driver.add_cookie(tmp)
     # 2回アクセスする必要がある
     driver.get(url)
+    upload_images_to_slack(driver, "test.png")
 
 
 def update_address(driver):
@@ -148,7 +150,6 @@ def update_address(driver):
     url = "https://www.amazon.co.jp/"
     # driver.get(url)
     set_cookie(driver, url)
-    upload_images_to_slack(driver, "test.png")
     update_address_txt = driver.find_element(
         By.XPATH, "//*[@id='glow-ingress-line2']"
     )
