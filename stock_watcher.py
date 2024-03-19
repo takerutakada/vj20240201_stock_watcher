@@ -4,12 +4,10 @@ import datetime
 import gspread
 import os
 import sys
-import requests
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from glob import glob
 
 # 実行環境
 # ACTION_ENV = "Local"
@@ -20,7 +18,7 @@ SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DI
 # モード（TEST / PROD）
 MODE = "TEST"
 # 最大リトライ回数
-MAX_RETRIES = 1
+MAX_RETRIES = 3
 
 if ACTION_ENV == "Local":
     # config.ini の読み込み
@@ -28,18 +26,10 @@ if ACTION_ENV == "Local":
     ini_file.read(f"{SETTING_DIR_PATH}/config.ini", "utf-8-sig")
     # service_account.json
     JSON = ini_file.get(MODE, "JSON")
-    # cookie.json
-    COOKIE_JSON = ini_file.get(MODE, "COOKIE_JSON")
     # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
     WORKBOOK_KEY = ini_file.get(MODE, "WORKBOOK_KEY")
-    # Slack API
-    SLACK_TOKEN = ini_file.get(MODE, "SLACK_TOKEN")
-    SLACK_CHANNEL = ini_file.get(MODE, "SLACK_CHANNEL")
 elif ACTION_ENV == "GitHub Actions":
     JSON = "service_account.json"
-    COOKIE_JSON = "cookie.json"
-    SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
-    SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
     if MODE == "TEST":
         # スプレッドシート（「https://docs.google.com/spreadsheets/d/」以降の文字列）
         WORKBOOK_KEY = os.environ.get("WORKBOOK_KEY_TEST")
@@ -218,68 +208,68 @@ def add_to_cart(driver, asin, target):
             driver.close()
         driver.switch_to.window(driver.window_handles[0])
 
-    # retry_count = 0
-    # while True:
-    #     try:
-    print(f"ASIN: {asin} / target: {target}")
-    url = f"https://www.amazon.co.jp/dp/{asin}"
-    driver.get(url)
-    # 住所を変更
-    update_address_btn = driver.find_element(
-        By.XPATH,
-        "/html/body/div[2]/header/div/div[4]/div[1]/div/div/div[3]/span[2]/span/input",
-    )
-    update_address_btn.click()
-    postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
-    postcode_0_input.send_keys("100")
-    postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
-    postcode_1_input.send_keys("0001")
-    time.sleep(5)
-    save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
-    save_btn.click()
-    time.sleep(5)
-    complete_btn = driver.find_element(
-        By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input"
-    )
-    complete_btn.click()
-    time.sleep(5)
-    # 販売元が表示されているか判定
-    seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
-    # 販売元が表示されている
-    if len(seller_name_elements):
-        print("販売元が表示されている")
-        seller_name = seller_name_elements[0].text
-        if seller_name == target:
-            print("販売元＝ターゲット")
-            # カートに追加
-            add_to_cart_button = driver.find_element(
-                By.XPATH, "//*[@id='add-to-cart-button']"
+    retry_count = 0
+    while True:
+        try:
+            print(f"ASIN: {asin} / target: {target}")
+            url = f"https://www.amazon.co.jp/dp/{asin}"
+            driver.get(url)
+            # 住所を変更
+            update_address_btn = driver.find_element(
+                By.XPATH,
+                "/html/body/div[2]/header/div/div[4]/div[1]/div/div/div[3]/span[2]/span/input",
             )
-            add_to_cart_button.click()
-            stock_count = "get_by_stock_count"
-        else:
-            print("販売元がターゲットでない")
-            stock_count = track_target()
-            close_tabs()
+            update_address_btn.click()
+            postcode_0_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_0']")
+            postcode_0_input.send_keys("100")
+            postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
+            postcode_1_input.send_keys("0001")
+            time.sleep(5)
+            save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
+            save_btn.click()
+            time.sleep(5)
+            complete_btn = driver.find_element(
+                By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input"
+            )
+            complete_btn.click()
+            time.sleep(5)
+            # 販売元が表示されているか判定
+            seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
+            # 販売元が表示されている
+            if len(seller_name_elements):
+                print("販売元が表示されている")
+                seller_name = seller_name_elements[0].text
+                if seller_name == target:
+                    print("販売元＝ターゲット")
+                    # カートに追加
+                    add_to_cart_button = driver.find_element(
+                        By.XPATH, "//*[@id='add-to-cart-button']"
+                    )
+                    add_to_cart_button.click()
+                    stock_count = "get_by_stock_count"
+                else:
+                    print("販売元がターゲットでない")
+                    stock_count = track_target()
+                    close_tabs()
 
-    else:
-        print("販売元が表示されていない")
-        stock_count = track_target()
-        close_tabs()
-    return stock_count
-    # except Exception as e:
-    #     driver.quit()
-    #     driver = init_driver()
-    #     if retry_count < MAX_RETRIES:
-    #         retry_count += 1
-    #         print(
-    #             f"- add_to_cart: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
-    #         )
-    #     else:
-    #         print("- add_to_cart: リトライ上限に達しました。次の商品に移ります。")
-    #         print(f"エラー内容: {e}")
-    #         stock_count = "error"
-    #         return stock_count
+            else:
+                print("販売元が表示されていない")
+                stock_count = track_target()
+                close_tabs()
+            return stock_count
+        except Exception as e:
+            driver.quit()
+            driver = init_driver()
+            if retry_count < MAX_RETRIES:
+                retry_count += 1
+                print(
+                    f"- add_to_cart: 失敗しました。リトライします。（リトライ回数：{retry_count}回目）"
+                )
+            else:
+                print("- add_to_cart: リトライ上限に達しました。次の商品に移ります。")
+                print(f"エラー内容: {e}")
+                stock_count = "error"
+                return stock_count
 
 
 def get_stock_count(driver, asin, target):
