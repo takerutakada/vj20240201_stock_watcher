@@ -334,6 +334,25 @@ def add_to_cart(driver, asin, target):
             driver.delete_all_cookies()
             set_cookie(driver, url)
 
+            # 住所を変更
+            update_address_btn = driver.find_element(
+                By.XPATH, "//*[@id='a-autoid-39']/span/input"
+            )
+            update_address_btn.click()
+            postcode_0_input = driver.find_element(
+                By.XPATH, "//*[@id='GLUXZipUpdateInput_0']"
+            )
+            postcode_0_input.send_keys("100")
+            postcode_1_input = driver.find_element(
+                By.XPATH, "//*[@id='GLUXZipUpdateInput_1']"
+            )
+            postcode_1_input.send_keys("0001")
+            save_btn = driver.find_element(
+                By.XPATH, "//*[@id='GLUXZipUpdate']/span/input"
+            )
+            save_btn.click()
+            time.sleep(5)
+
             # 販売元が表示されているか判定
             seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
             # 販売元が表示されている
