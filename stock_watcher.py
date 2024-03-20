@@ -91,7 +91,7 @@ def init_driver():
     }
     options.add_experimental_option("prefs", prefs)
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument("--disk-cache=false")
     driver = webdriver.Chrome(options=options)
     driver.implicitly_wait(10)
