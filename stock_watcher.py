@@ -127,10 +127,8 @@ def get_status(driver, asin, target):
             # bot 対策回避のため、一度重要度の低いページを経由する
             tmp_url = "https://www.amazon.co.jp/gp/help/customer/display.html?nodeId=201909000"
             driver.get(tmp_url)
-            # upload_images_to_slack(driver, f"{asin}_{target}_1.png")
             url = f"https://www.amazon.co.jp/dp/{asin}"
             driver.get(url)
-            # upload_images_to_slack(driver, f"{asin}_{target}_1.png")
             # 住所を変更
             update_address_btn = driver.find_element(
                 By.XPATH,
@@ -141,13 +139,10 @@ def get_status(driver, asin, target):
             postcode_0_input.send_keys("100")
             postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
             postcode_1_input.send_keys("0001")
-            time.sleep(5)
             save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
             save_btn.click()
             time.sleep(5)
-            complete_btn = driver.find_element(
-                By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input"
-            )
+            complete_btn = driver.find_element(By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input")
             complete_btn.click()
             time.sleep(5)
             # 販売元が表示されているか判定
@@ -318,29 +313,6 @@ def post_to_spreadsheet(auth, stock_counts):
     for stock_count in stock_counts:
         quantities.append([stock_count])
     sheet.append_rows(quantities, table_range="D1", value_input_option="USER_ENTERED")
-
-def upload_images_to_slack(driver, file_name):
-    import requests
-    from glob import glob
-    SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
-    SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
-    # get width and height of the page
-    w = driver.execute_script("return document.body.scrollWidth;")
-    h = driver.execute_script("return document.body.scrollHeight;")
-    # set window size
-    driver.set_window_size(w, h)
-    driver.save_screenshot(file_name)
-    file_path = glob(file_name)[0]
-
-    files = {"file": open(file_path, "rb")}
-    param = {
-        "token": SLACK_TOKEN,
-        "channels": SLACK_CHANNEL,
-        "filename": "filename",
-        "initial_comment": "initial comment",
-        "title": "title",
-    }
-    requests.post(url="https://slack.com/api/files.upload", data=param, files=files)
 
 
 if __name__ == "__main__":
