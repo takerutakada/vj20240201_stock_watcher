@@ -17,6 +17,7 @@ SETTING_DIR = "settings"
 SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DIR}"
 # モード（TEST / PROD）
 MODE = "TEST"
+MODE = "PROD"
 # 最大リトライ回数
 MAX_RETRIES = 3
 
@@ -304,7 +305,7 @@ def post_to_spreadsheet(auth, stock_counts):
         List of stock_count
     """
 
-    sheet = auth.open_by_key(WORKBOOK_KEY).worksheet("シート1")
+    sheet = auth.open_by_key(WORKBOOK_KEY).worksheet("シート3")
     # 現在の日付を取得
     current_date = datetime.datetime.now().strftime("%Y/%m/%d")
     # 4列目に空列を挿入
