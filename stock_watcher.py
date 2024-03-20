@@ -139,6 +139,7 @@ def get_status(driver, asin, target):
             postcode_0_input.send_keys("100")
             postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
             postcode_1_input.send_keys("0001")
+            time.sleep(5)
             save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
             save_btn.click()
             time.sleep(5)
