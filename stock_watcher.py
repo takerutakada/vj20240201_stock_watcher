@@ -322,8 +322,8 @@ def post_to_spreadsheet(auth, stock_counts):
 def upload_images_to_slack(driver, file_name):
     import requests
     from glob import glob
-    SLACK_TOKEN = ini_file.get(MODE, "SLACK_TOKEN")
-    SLACK_CHANNEL = ini_file.get(MODE, "SLACK_CHANNEL")
+    SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
+    SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
     # get width and height of the page
     w = driver.execute_script("return document.body.scrollWidth;")
     h = driver.execute_script("return document.body.scrollHeight;")
