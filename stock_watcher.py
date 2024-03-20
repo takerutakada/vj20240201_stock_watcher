@@ -328,8 +328,8 @@ def add_to_cart(driver, asin, target):
     # while True:
     #     try:
     print(f"ASIN: {asin} / target: {target}")
-    set_cookie(driver, "https://www.amazon.co.jp/")
-    upload_images_to_slack(driver, f"{asin}_{target}_1.png")
+    # set_cookie(driver, "https://www.amazon.co.jp/")
+    driver.get(https://www.amazon.co.jp/gp/help/customer/display.html?nodeId=201909000)    upload_images_to_slack(driver, f"{asin}_{target}_1.png")
     url = f"https://www.amazon.co.jp/dp/{asin}"
     driver.get(url)
     upload_images_to_slack(driver, f"{asin}_{target}_1.png")
