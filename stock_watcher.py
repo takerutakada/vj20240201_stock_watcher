@@ -73,7 +73,7 @@ def get_asins_and_targets(auth):
         List of target
     """
 
-    sheet = auth.open_by_key(WORKBOOK_KEY).worksheet("シート1")
+    sheet = auth.open_by_key(WORKBOOK_KEY).worksheet("シート3")
     asins = sheet.col_values(1)[1:]
     targets = sheet.col_values(3)[1:]
     return asins, targets
