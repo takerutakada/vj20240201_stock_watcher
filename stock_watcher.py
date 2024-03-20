@@ -8,8 +8,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 
 # 実行環境
 # ACTION_ENV = "Local"
@@ -143,30 +141,17 @@ def get_status(driver, asin, target):
             postcode_0_input.send_keys("100")
             postcode_1_input = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdateInput_1']")
             postcode_1_input.send_keys("0001")
-            # time.sleep(5)
-            # save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
-            save_btn = wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
-                )
-            )
+            time.sleep(5)
+            save_btn = driver.find_element(By.XPATH, "//*[@id='GLUXZipUpdate']/span/input")
             save_btn.click()
-            # time.sleep(5)
-            # complete_btn = driver.find_element(By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input")
-            complete_btn = wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input")
-                )
+            time.sleep(5)
+            complete_btn = driver.find_element(
+                By.XPATH, "/html/body/div[9]/div/div/div[2]/span/span/input"
             )
             complete_btn.click()
+            time.sleep(5)
             # 販売元が表示されているか判定
-            # time.sleep(5)
-            # seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
-            seller_name_elements = wait.until(
-                EC.presence_of_element_located(
-                    (By.ID, "sellerProfileTriggerId")
-                )
-            )
+            seller_name_elements = driver.find_elements(By.ID, "sellerProfileTriggerId")
             # 販売元が表示されている
             if seller_name_elements and seller_name_elements[0].text == target:
                 # カートに追加
@@ -371,7 +356,6 @@ if __name__ == "__main__":
     stock_counts = []
     for asin, target in zip(asins, targets):
         driver = init_driver()
-        wait = WebDriverWait(driver=driver, timeout=60)
         status = get_status(driver, asin, target)
         if status == "get_by_stock_count":
             stock_counts.append(get_stock_count(driver, asin, target))
