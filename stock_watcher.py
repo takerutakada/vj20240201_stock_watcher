@@ -19,7 +19,7 @@ SETTING_DIR_PATH = f"{os.path.dirname(os.path.abspath(sys.argv[0]))}/{SETTING_DI
 # MODE = "TEST"
 MODE = "PROD"
 # 最大リトライ回数
-MAX_RETRIES = 0
+MAX_RETRIES = 3
 
 if ACTION_ENV == "Local":
     # config.ini の読み込み
