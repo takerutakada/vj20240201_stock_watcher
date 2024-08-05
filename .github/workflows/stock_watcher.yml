@@ -2,9 +2,9 @@ name: stock_watcher
 on:
   # push 時に実行（テスト用）
   # push:
-  # JST 06:00 に実行←要確認
+  # JST 04:00 に実行
   # schedule:
-  #   - cron: '0 21 * * *'
+    # - cron: '0 19 * * *'
   # 手動実行
   workflow_dispatch:
 
@@ -31,8 +31,8 @@ jobs:
         uses: jsdaniell/create-json@v1.2.2
         with:
           name: "service_account.json"
-          # json: ${{ secrets.JSON_TEST }}
-          json: ${{ secrets.JSON }}
+          json: ${{ secrets.JSON_TEST }}
+          # json: ${{ secrets.JSON }}
           dir: "settings/"
       - name: Run stock_watcher
         env:
