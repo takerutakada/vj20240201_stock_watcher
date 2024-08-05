@@ -5,7 +5,9 @@ on:
   # JST 04:00 に実行
   # schedule:
     # - cron: '0 19 * * *'
-  # 手動実行
+  repository_dispatch:
+    types: [stock_watcher_trigger]
+    # 手動実行
   workflow_dispatch:
 
 jobs:
